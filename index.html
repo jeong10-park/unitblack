@@ -292,7 +292,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 
   <!-- 03 HOT ISSUES -->
   <div class="hot-section">
-    <div class="section-label">🔥 Hot 이슈 — 브랜드별 버즈량 <span class="idx">03</span></div>
+    <div class="section-label">📊 브랜드별 버즈량 <span class="idx">03</span></div>
     <div class="hot-grid" id="hotGrid">
       <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);font-size:13px">📡 데이터 불러오는 중...</div>
     </div>
@@ -300,7 +300,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 
   <!-- 04 RISING -->
   <div class="rising-section">
-    <div class="section-label">📰 브랜드별 최신 피드 <span class="idx">04</span></div>
+    <div class="section-label">🔥 브랜드별 Hot 이슈 <span class="idx">04</span></div>
     <div class="rising-list" id="risingList">
       <div style="padding:20px;color:var(--text3);font-size:13px">📡 데이터 불러오는 중...</div>
     </div>
@@ -838,7 +838,6 @@ async function loadFeedFromSheets(){
       const score=Math.min(99,Math.round(h.count/maxCount*99));
       const fillColor=domSent==='긍정'?'var(--pos)':domSent==='부정'?'var(--neg)':'var(--neu)';
       const channels=[...h.채널].slice(0,4).map(c=>`<span class="ch-tag">${c}</span>`).join('');
-      const titleText=h.titles[0]||h.brand+' 관련 이슈';
       const borderStyle=isSave?'border-color:rgba(124,106,255,0.3);':'';
       const brandLabel=isSave?h.brand+' ✦':h.brand;
       const brandColor=isSave?'color:var(--accent2)':'';
@@ -848,16 +847,15 @@ async function loadFeedFromSheets(){
             <span class="brand-tag" style="${brandColor}">${brandLabel}</span>
             <span class="sent-badge ${sc}">${se}</span>
           </div>
-          <div class="hot-title">${titleText.slice(0,60)}${titleText.length>60?'...':''}</div>
           <div class="score-row">
             <span class="score-label">버즈량</span>
             <div class="score-bar"><div class="score-fill" style="width:${score}%;background:${fillColor}"></div></div>
             <span class="score-val">${h.count}</span>
           </div>
           <div class="hot-meta">
-            <span class="meta-item">🔥 ${h.pos}</span>
-            <span class="meta-item">💀 ${h.neg}</span>
-            <span class="meta-item">😐 ${h.neu}</span>
+            <span class="meta-item">🔥 긍정 ${h.pos}</span>
+            <span class="meta-item">💀 부정 ${h.neg}</span>
+            <span class="meta-item">😐 중립 ${h.neu}</span>
           </div>
           <div class="hot-channels">${channels}</div>
         </div>`;
