@@ -250,8 +250,10 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
         <div class="divider"></div>
         <div>
           <div class="sov-card-title">연관 키워드별 점유율</div>
-          <div class="sov-kw-bar">
-            <input id="sovKwInput" type="text" placeholder="키워드 검색..." style="font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--border2);background:var(--bg);color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif;width:130px" oninput="searchSovKw(this.value)">
+        <div class="sov-kw-bar">
+            <input id="sovKwInput" type="text" placeholder="키워드 입력 후 엔터..." 
+              style="font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--border2);background:var(--bg);color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif;width:150px" 
+              onkeydown="if(event.key==='Enter') searchKwFromTop(this.value)">
             <button class="sov-kw active" onclick="selectSovKw(this,'all')">전체</button>
             <button class="sov-kw" onclick="selectSovKw(this,'세금')">세금</button>
             <button class="sov-kw" onclick="selectSovKw(this,'절세')">절세</button>
@@ -266,16 +268,6 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
             <button class="sov-kw" onclick="selectSovKw(this,'환급')">환급</button>
             <button class="sov-kw" onclick="selectSovKw(this,'세무사')">세무사</button>
             <button class="sov-kw" onclick="selectSovKw(this,'세무기장')">세무기장</button>
-          </div>
-          <!-- 연관 키워드 직접 검색 -->
-          <div style="display:flex;gap:8px;margin-bottom:14px">
-            <input type="text" id="kwSearchInput" placeholder="키워드 직접 검색 (예: 세금환급)" 
-              style="flex:1;font-size:12px;font-family:'DM Mono',monospace;padding:5px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg);color:var(--text2);outline:none"
-              onkeydown="if(event.key==='Enter')searchKw()">
-            <button onclick="searchKw()" 
-              style="font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:'Noto Sans KR',sans-serif">
-              조회
-            </button>
           </div>
           <div id="kwSovChart"></div>
         </div>
@@ -527,27 +519,42 @@ function renderSovChart(key){
     c.appendChild(row);
   });
 }
-function selectSovKw(el,key){
-  document.querySelectorAll('.sov-kw').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('kwSearchInput').value='';
-  renderSovChart(key);
+function searchKwFromTop(val) {
+  if (!val.trim()) return;
+
+  document.querySelectorAll('.sov-kw').forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+
+  const kwData = {};
+  BRANDS.forEach(function(brand) {
+    kwData[brand] = 0;
+  });
+
+  allItems.forEach(function(item) {
+    const titleAndContent = (item.제목 + ' ' + item.내용요약).toLowerCase();
+    if (titleAndContent.includes(val.toLowerCase()) && kwData[item.브랜드] !== undefined) {
+      kwData[item.브랜드]++;
+    }
+  });
+
+  SOV[val] = kwData;
+  currentSovKw = val;
+  renderSovChart(val);
 }
 
-function searchKw(){
-  const kw=document.getElementById('kwSearchInput').value.trim();
-  if(!kw)return;
-  // 버튼 활성화 해제
-  document.querySelectorAll('.sov-kw').forEach(b=>b.classList.remove('active'));
-  // 실시간 계산
-  const kwData={};BRANDS.forEach(b=>kwData[b]=0);
-  allItems.forEach(item=>{
-    const text=(item.제목+' '+item.내용요약).toLowerCase();
-    if(text.includes(kw.toLowerCase())&&kwData[item.브랜드]!==undefined) kwData[item.브랜드]++;
+function selectSovKw(el, key) {
+  document.querySelectorAll('.sov-kw').forEach(function(btn) {
+    btn.classList.remove('active');
   });
-  SOV[kw]=kwData;
-  currentSovKw=kw;
-  renderSovChart(kw);
+  el.classList.add('active');
+
+  const topInput = document.getElementById('sovKwInput');
+  if (topInput) {
+    topInput.value = '';
+  }
+
+  renderSovChart(key);
 }
 
 function renderSentDonut(svgId,legId,sentKey){
