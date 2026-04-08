@@ -609,7 +609,7 @@ function renderAreaChart(){
     const isSave = b === '세이브택스';
     
     // 투명도 설정: 세이브택스(0.85)는 선명하게, 나머지는 매우 흐리게(0.15) 처리하여 색 겹침 방지
-    const alpha = isSave ? 0.85 : 0.15; 
+    const alpha = isSave ? 1 : 1; 
     
     // 선 굵기: 세이브택스만 4px로 강조, 나머지는 1px로 얇게 설정
     const bWidth = isSave ? 4 : 1;
