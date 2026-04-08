@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<!-- saved from url=(0045)file:///C:/Users/whats/Downloads/index_7.html -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🤖 SAVETAX 바이럴 모니터링 대시보드 | 유닛블랙</title>
+<link href="./dashboard_260408_files/css2" rel="stylesheet">
+<script src="./dashboard_260408_files/chart.umd.min.js.다운로드"></script>
+<style>
+:root{--bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);--text:#f0f0f8;--text2:#a0a0bc;--text3:#606078;--accent:#7c6aff;--accent2:#b8aaff;--pos:#22d37a;--neg:#ff5252;--neu:#ffb740;--meme:#40cfff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:15px;line-height:1.7}
+
+.header{border-bottom:1px solid var(--border);padding:8px 32px;min-height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(10,10,15,0.96);backdrop-filter:blur(14px);z-index:100;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-badge{background:var(--accent);color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;padding:3px 9px;border-radius:5px;flex-shrink:0}
+.logo-text{font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.01em;white-space:nowrap}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.live-btn{display:flex;align-items:center;gap:6px;font-size:12px;font-family:'DM Mono',monospace;padding:5px 12px;border-radius:20px;border:1px solid rgba(34,211,122,0.35);background:rgba(34,211,122,0.07);color:var(--pos);cursor:pointer;transition:all .15s}
+.live-btn.active{background:rgba(34,211,122,0.15);border-color:var(--pos)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--pos);animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.date-sep{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace}
+.date-input{font-size:12px;font-family:'DM Mono',monospace;padding:5px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);outline:none;transition:border-color .15s;color-scheme:dark}
+.date-input:focus{border-color:var(--accent);color:var(--text)}
+.date-apply-btn{font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;transition:all .15s;font-family:'Noto Sans KR',sans-serif}
+.date-apply-btn:hover{border-color:var(--accent);color:var(--accent2)}
+.period-badge{font-size:11px;font-family:'DM Mono',monospace;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--text3);display:none}
+.period-badge.visible{display:inline-block;color:var(--accent2);border-color:rgba(124,106,255,0.3)}
+.last-update{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+
+.container{max-width:1300px;margin:0 auto;padding:0 32px 72px}
+.page-header{padding:36px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.page-title{font-size:26px;font-weight:700;letter-spacing:-.03em;margin-bottom:6px;line-height:1.3}
+.page-title span{color:var(--accent2)}
+.page-sub{font-size:14px;color:var(--text2)}
+.section-label{font-size:14px;font-weight:600;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-label .idx{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);font-weight:400}
+
+.keyword-section{display:flex;align-items:center;gap:10px;margin-bottom:32px;flex-wrap:wrap}
+.kw-label{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace}
+.kw-tag{font-size:13px;padding:5px 14px;border-radius:20px;border:1px solid var(--border2);color:var(--text2);cursor:pointer;transition:all .15s;background:transparent;font-family:'Noto Sans KR',sans-serif}
+.kw-tag:hover{border-color:var(--accent);color:var(--accent2)}
+.kw-tag.active{background:rgba(124,106,255,0.15);border-color:var(--accent);color:var(--accent2)}
+
+.sov-section{margin-bottom:44px}
+.sov-grid{display:grid;grid-template-columns:280px 1fr;gap:16px}
+.sov-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px}
+.sov-card-title{font-size:13px;color:var(--text2);margin-bottom:18px;font-weight:500}
+.donut-wrap{position:relative;width:156px;height:156px;margin:0 auto 20px}
+.donut-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-total{font-size:18px;font-weight:700}
+.donut-unit{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace}
+.legend{display:flex;flex-direction:column;gap:8px}
+.legend-item{display:flex;align-items:center;justify-content:space-between;font-size:13px}
+.legend-left{display:flex;align-items:center;gap:8px}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.legend-name{color:var(--text2)}
+.legend-pct{font-family:'DM Mono',monospace;font-size:13px;color:var(--text);font-weight:500}
+
+.sov-right{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:20px}
+.divider{border-top:1px solid var(--border)}
+.area-title{font-size:13px;color:var(--text2);font-weight:500;margin-bottom:12px}
+.area-wrap{position:relative;height:200px}
+.area-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.area-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.area-leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+.sov-kw-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.sov-kw{font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--border2);color:var(--text2);cursor:pointer;transition:all .15s;background:transparent;font-family:'Noto Sans KR',sans-serif}
+.sov-kw.active{background:rgba(124,106,255,0.12);border-color:var(--accent);color:var(--accent2)}
+.brand-kw-list{display:flex;flex-direction:column;gap:9px}
+.brand-kw-item{display:flex;align-items:flex-start;gap:10px}
+.brand-kw-name{font-size:13px;color:var(--text2);min-width:76px;padding-top:2px}
+.brand-kw-chips{display:flex;gap:5px;flex-wrap:wrap}
+.brand-chip{font-size:11px;padding:2px 9px;border-radius:10px;border:1px solid var(--border2);color:var(--text3);font-family:'DM Mono',monospace}
+.brand-chip.st{border-color:rgba(124,106,255,0.4);color:var(--accent2);background:rgba(124,106,255,0.08)}
+
+.sent-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:44px}
+.sent-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px}
+.sent-card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:14px}
+.sent-donut-wrap{position:relative;width:84px;height:84px;margin:0 auto 14px}
+.sent-donut-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.sent-donut-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.sent-pct{font-size:13px;font-weight:700;font-family:'DM Mono',monospace}
+.sent-legend{display:flex;flex-direction:column;gap:5px}
+.sent-legend-item{display:flex;justify-content:space-between;font-size:12px}
+.sent-legend-name{color:var(--text2)}
+.sent-legend-val{font-family:'DM Mono',monospace;color:var(--text);font-weight:500}
+
+.hot-section{margin-bottom:44px}
+.hot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.hot-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:border-color .15s,transform .15s}
+.hot-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.hot-card.hidden{display:none}
+.hot-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.brand-tag{font-size:13px;font-weight:600;color:var(--text)}
+.sent-badge{font-size:11px;padding:3px 9px;border-radius:10px;font-weight:500}
+.s-pos{background:rgba(34,211,122,0.12);color:var(--pos)}
+.s-neg{background:rgba(255,82,82,0.12);color:var(--neg)}
+.s-neu{background:rgba(255,183,64,0.12);color:var(--neu)}
+.s-meme{background:rgba(64,207,255,0.12);color:var(--meme)}
+.hot-title{font-size:14px;color:var(--text);line-height:1.55;margin-bottom:13px}
+.score-row{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.score-label{font-size:11px;color:var(--text3);min-width:60px;font-family:'DM Mono',monospace}
+.score-bar{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:2px}
+.score-fill{height:100%;border-radius:2px}
+.f-neg{background:var(--neg)}.f-pos{background:var(--pos)}.f-neu{background:var(--neu)}
+.score-val{font-size:11px;font-family:'DM Mono',monospace;color:var(--text2);min-width:28px;text-align:right;font-weight:500}
+.hot-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+.meta-item{font-size:12px;color:var(--text3)}
+.hot-channels{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.ch-tag{font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);color:var(--text3);font-family:'DM Mono',monospace}
+.hot-tags{display:flex;gap:5px;flex-wrap:wrap}
+.feed-hash{font-size:11px;color:var(--accent);font-family:'DM Mono',monospace}
+
+.rising-section{margin-bottom:44px}
+.rising-list{display:flex;flex-direction:column;gap:9px}
+.rising-item{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:15px 18px;display:flex;align-items:center;gap:16px;transition:border-color .15s}
+.rising-item:hover{border-color:var(--border2)}
+.rising-item.hidden{display:none}
+.rising-rank{font-size:20px;font-weight:700;color:var(--text3);min-width:24px;font-family:'DM Mono',monospace}
+.rising-info{flex:1}
+.rising-title{font-size:14px;color:var(--text);margin-bottom:3px}
+.rising-sub{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace}
+.rising-pct{font-size:12px;font-weight:600;color:var(--pos);background:rgba(34,211,122,0.08);border:1px solid rgba(34,211,122,0.2);padding:4px 11px;border-radius:20px;font-family:'DM Mono',monospace;white-space:nowrap}
+
+/* FEED 3열 그리드 */
+.feed-section{margin-bottom:44px}
+.feed-filter{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap}
+.filter-btn{font-size:13px;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--text2);cursor:pointer;transition:all .15s;background:transparent;font-family:'Noto Sans KR',sans-serif}
+.filter-btn.active{background:rgba(124,106,255,0.15);border-color:var(--accent);color:var(--accent2)}
+.feed-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.feed-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s}
+.feed-card:hover{border-color:var(--border2)}
+.feed-card.hidden{display:none}
+.feed-card-top{display:flex;justify-content:space-between;align-items:center}
+.feed-brand{font-size:13px;font-weight:600;color:var(--text)}
+.feed-time{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace}
+.feed-text{font-size:12px;color:var(--text2);line-height:1.6;flex:1}
+.feed-bottom{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:auto}
+.feed-ch{font-size:10px;color:var(--text3)}
+.feed-link{font-size:10px;color:var(--accent2);text-decoration:none;margin-left:auto}
+.feed-link:hover{text-decoration:underline}
+
+.timeline-section{margin-bottom:44px}
+.tl-item{display:flex}
+.tl-item.hidden{display:none}
+.tl-left{display:flex;flex-direction:column;align-items:flex-end;width:90px;flex-shrink:0;padding-right:14px}
+.tl-time{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;padding-top:1px}
+.tl-mid{display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0}
+.tl-dot{width:11px;height:11px;border-radius:50%;border:2px solid;flex-shrink:0}
+.tl-line{width:1px;background:var(--border);flex:1;min-height:24px}
+.tl-content{padding:0 0 22px 14px;flex:1}
+.tl-brand{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.tl-desc{font-size:13px;color:var(--text2);line-height:1.5}
+
+.footer{border-top:1px solid var(--border);padding:20px 32px;display:flex;justify-content:space-between;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;flex-wrap:wrap;gap:8px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.sov-section,.sent-grid,.hot-section,.feed-section,.rising-section,.timeline-section{animation:fadeUp .45s ease both}
+.sov-section{animation-delay:.05s}.sent-grid{animation-delay:.1s}.hot-section{animation-delay:.15s}
+.feed-section{animation-delay:.2s}.rising-section{animation-delay:.25s}.timeline-section{animation-delay:.3s}
+
+@media(max-width:1100px){.sov-grid{grid-template-columns:1fr}}
+@media(max-width:900px){
+  .hot-grid{grid-template-columns:1fr 1fr}
+  .sent-grid{grid-template-columns:1fr 1fr}
+  .feed-grid{grid-template-columns:1fr 1fr}
+  .container{padding:0 16px 60px}
+  .header{padding:10px 16px}
+  .sov-right{padding:16px}
+  .area-wrap{height:160px}
+  .sov-kw-bar{gap:4px}
+  .sov-kw{font-size:11px;padding:3px 8px}
+  .brand-kw-name{min-width:60px;font-size:12px}
+}
+@media(max-width:600px){
+  .hot-grid{grid-template-columns:1fr}
+  .sent-grid{grid-template-columns:1fr 1fr}
+  .feed-grid{grid-template-columns:1fr}
+  .sov-card{padding:16px}
+  .donut-wrap{width:130px;height:130px}
+  .sov-right{padding:14px}
+  .area-wrap{height:140px}
+  .brand-chip{font-size:10px;padding:2px 7px}
+  .header-right{gap:6px}
+  .date-input{width:110px;font-size:11px}
+  .date-apply-btn{font-size:11px;padding:4px 8px}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <span class="logo-badge">UNITBLACK</span>
+    <span class="logo-text">🤖 SAVETAX 바이럴 모니터링 대시보드</span>
+  </div>
+  <div class="header-right">
+    <button class="live-btn active" id="liveBtn" onclick="toggleLive()">
+      <span class="live-dot" id="liveDot"></span>LIVE
+    </button>
+    <input type="date" class="date-input" id="dateFrom">
+    <span class="date-sep">~</span>
+    <input type="date" class="date-input" id="dateTo">
+    <button class="date-apply-btn" onclick="applyDateRange()">기간 조회</button>
+    <span class="period-badge" id="periodBadge"></span>
+    <span class="last-update" id="updateTime">14:29 갱신</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="page-header">
+    <div class="page-title">🤖 <span>SAVETAX 바이럴 모니터링 대시보드</span></div>
+    <div class="page-sub">경쟁사 대비 온라인 버즈 점유율(SOV) · 이슈 · 감성 분석 — 목업 데이터 기준</div>
+  </div>
+
+  <!-- KEYWORD FILTER -->
+  <div class="keyword-section" id="kwSection">
+    <span class="kw-label">모니터링 키워드</span>
+    <span class="kw-tag active" data-brand="세이브택스" onclick="toggleKw(this)">세이브택스</span>
+    <span class="kw-tag active" data-brand="삼쩜삼" onclick="toggleKw(this)">삼쩜삼</span>
+    <span class="kw-tag active" data-brand="토스인컴" onclick="toggleKw(this)">토스인컴</span>
+    <span class="kw-tag active" data-brand="쎔" onclick="toggleKw(this)">쎔</span>
+    <span class="kw-tag active" data-brand="비즈넵" onclick="toggleKw(this)">비즈넵</span>
+    <span class="kw-tag active" data-brand="국세청 원클릭" onclick="toggleKw(this)">국세청 원클릭</span>
+    <span class="kw-tag active" data-brand="국민의세무사" onclick="toggleKw(this)">국민의세무사</span>
+  </div>
+
+  <!-- 01 SOV -->
+  <div class="sov-section">
+    <div class="section-label">📊 바이럴 점유율 (SOV · Share of Voice) <span class="idx">01</span></div>
+    <div class="sov-grid">
+      <div class="sov-card">
+        <div class="sov-card-title">전체 온라인 버즈 점유율</div>
+        <div class="donut-wrap">
+          <svg viewBox="0 0 100 100" id="mainDonutSvg"><circle cx="50" cy="50" r="38" fill="none" stroke="#ff5252" stroke-width="14" stroke-dasharray="141.08607007939617 97.6749715934281" stroke-dashoffset="0"></circle><circle cx="50" cy="50" r="38" fill="none" stroke="#ffb740" stroke-width="14" stroke-dasharray="56.97706676283307 181.7839749099912" stroke-dashoffset="-141.08607007939617"></circle><circle cx="50" cy="50" r="38" fill="none" stroke="#22d37a" stroke-width="14" stroke-dasharray="21.705549242984024 217.05549242984023" stroke-dashoffset="-198.06313684222923"></circle><circle cx="50" cy="50" r="38" fill="none" stroke="#a594ff" stroke-width="14" stroke-dasharray="10.852774621492012 227.90826705133225" stroke-dashoffset="-219.76868608521326"></circle><circle cx="50" cy="50" r="38" fill="none" stroke="#7c6aff" stroke-width="14" stroke-dasharray="8.139580966119007 230.62146070670525" stroke-dashoffset="-230.62146070670528"></circle></svg>
+          <div class="donut-center"><div class="donut-total">SOV</div><div class="donut-unit">전체 버즈</div></div>
+        </div>
+        <div class="legend" id="mainLegend"><div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#ff5252"></div><span class="legend-name" style="">삼쩜삼</span></div><span class="legend-pct" style="">59%</span></div><div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#ffb740"></div><span class="legend-name" style="">토스인컴</span></div><span class="legend-pct" style="">24%</span></div><div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#22d37a"></div><span class="legend-name" style="">쎔</span></div><span class="legend-pct" style="">9%</span></div><div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#a594ff"></div><span class="legend-name" style="">비즈넵</span></div><span class="legend-pct" style="">5%</span></div><div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#7c6aff"></div><span class="legend-name" style="color:var(--accent2);font-weight:500">세이브택스</span></div><span class="legend-pct" style="color:var(--accent2)">3%</span></div></div>
+      </div>
+      <div class="sov-right">
+        <div>
+          <div class="area-title">📈 주차별 SOV 추이 (100% 누적)</div>
+          <div class="area-wrap"><canvas id="areaChart"></canvas></div>
+          <div class="area-legend" id="areaLegend"></div>
+        </div>
+        <div class="divider"></div>
+        <div>
+          <div class="sov-card-title">연관 키워드별 점유율</div>
+          <div class="sov-kw-bar">
+            <button class="sov-kw active" onclick="selectSovKw(this,&#39;all&#39;)">전체</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;세금&#39;)">세금</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;절세&#39;)">절세</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;세금환급&#39;)">세금환급</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;경정청구&#39;)">경정청구</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;부가세&#39;)">부가세</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;종합소득세&#39;)">종합소득세</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;연말정산&#39;)">연말정산</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;프리랜서세금&#39;)">프리랜서세금</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;세금신고&#39;)">세금신고</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;절세방법&#39;)">절세방법</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;환급&#39;)">환급</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;세무사&#39;)">세무사</button>
+            <button class="sov-kw" onclick="selectSovKw(this,&#39;세무기장&#39;)">세무기장</button>
+          </div>
+          <div id="kwSovChart"><div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><span style="font-size:12px;color:var(--text2);min-width:76px;font-weight:400">삼쩜삼</span><div style="flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px"><div style="height:100%;width:59%;background:#ff5252;border-radius:3px;opacity:0.75"></div></div><span style="font-size:12px;font-family:&#39;DM Mono&#39;,monospace;color:var(--text2);min-width:32px;text-align:right;font-weight:400">59%</span></div><div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><span style="font-size:12px;color:var(--text2);min-width:76px;font-weight:400">토스인컴</span><div style="flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px"><div style="height:100%;width:24%;background:#ffb740;border-radius:3px;opacity:0.75"></div></div><span style="font-size:12px;font-family:&#39;DM Mono&#39;,monospace;color:var(--text2);min-width:32px;text-align:right;font-weight:400">24%</span></div><div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><span style="font-size:12px;color:var(--text2);min-width:76px;font-weight:400">쎔</span><div style="flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px"><div style="height:100%;width:9%;background:#22d37a;border-radius:3px;opacity:0.75"></div></div><span style="font-size:12px;font-family:&#39;DM Mono&#39;,monospace;color:var(--text2);min-width:32px;text-align:right;font-weight:400">9%</span></div><div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><span style="font-size:12px;color:var(--text2);min-width:76px;font-weight:400">비즈넵</span><div style="flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px"><div style="height:100%;width:5%;background:#a594ff;border-radius:3px;opacity:0.75"></div></div><span style="font-size:12px;font-family:&#39;DM Mono&#39;,monospace;color:var(--text2);min-width:32px;text-align:right;font-weight:400">5%</span></div><div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;"><span style="font-size:12px;color:var(--accent2);min-width:76px;font-weight:500">세이브택스 ✦</span><div style="flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px"><div style="height:100%;width:3%;background:#7c6aff;border-radius:3px;opacity:1"></div></div><span style="font-size:12px;font-family:&#39;DM Mono&#39;,monospace;color:var(--accent2);min-width:32px;text-align:right;font-weight:500">3%</span></div></div>
+        </div>
+        <div class="divider"></div>
+        <div>
+          <div class="sov-card-title">브랜드별 평가 핵심 키워드</div>
+          <div class="brand-kw-list">
+            <div class="brand-kw-item"><span class="brand-kw-name" style="color:var(--accent2)">세이브택스</span><div class="brand-kw-chips"><span class="brand-chip st">절세컨설팅</span><span class="brand-chip st">맞춤세무</span><span class="brand-chip st">전문세무사</span><span class="brand-chip st">우리은행제휴</span><span class="brand-chip st">세무기장</span></div></div>
+            <div class="brand-kw-item"><span class="brand-kw-name">삼쩜삼</span><div class="brand-kw-chips"><span class="brand-chip">환급꿀팁</span><span class="brand-chip">수수료논란</span><span class="brand-chip">공정위제재</span><span class="brand-chip">AI세무</span></div></div>
+            <div class="brand-kw-item"><span class="brand-kw-name">토스인컴</span><div class="brand-kw-chips"><span class="brand-chip">숨은환급찾기</span><span class="brand-chip">추징보상</span><span class="brand-chip">편리한신고</span></div></div>
+            <div class="brand-kw-item"><span class="brand-kw-name">원클릭</span><div class="brand-kw-chips"><span class="brand-chip">무료환급</span><span class="brand-chip">국세청공식</span><span class="brand-chip">수수료제로</span></div></div>
+            <div class="brand-kw-item"><span class="brand-kw-name">쎔</span><div class="brand-kw-chips"><span class="brand-chip">카카오뱅크연동</span><span class="brand-chip">부가세신고</span></div></div>
+            <div class="brand-kw-item"><span class="brand-kw-name">비즈넵</span><div class="brand-kw-chips"><span class="brand-chip">AI이중검토</span><span class="brand-chip">소상공인</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 SENTIMENT SOV -->
+  <div class="section-label">🎭 감성별 SOV <span class="idx">02</span></div>
+  <div class="sent-grid">
+    <div class="sent-card"><div class="sent-card-title">📊 전체 SOV</div><div class="sent-donut-wrap"><svg viewBox="0 0 80 80" id="sd0"><circle cx="40" cy="40" r="28" fill="none" stroke="#ff5252" stroke-width="11" stroke-dasharray="103.9581569006077 71.97103170042071" stroke-dashoffset="0"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#ffb740" stroke-width="11" stroke-dasharray="41.98310182524542 133.946086775783" stroke-dashoffset="-103.9581569006077"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#22d37a" stroke-width="11" stroke-dasharray="15.993562600093492 159.93562600093492" stroke-dashoffset="-145.94125872585312"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#a594ff" stroke-width="11" stroke-dasharray="7.996781300046746 167.93240730098168" stroke-dashoffset="-161.93482132594661"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#7c6aff" stroke-width="11" stroke-dasharray="5.997585975035059 169.93160262599335" stroke-dashoffset="-169.93160262599335"></circle></svg><div class="sent-donut-center"><span class="sent-pct" style="color:var(--text)">전체</span></div></div><div class="sent-legend" id="sl0"><div class="sent-legend-item"><span class="sent-legend-name" style="">삼쩜삼</span><span class="sent-legend-val" style="">59%</span></div><div class="sent-legend-item"><span class="sent-legend-name" style="">토스인컴</span><span class="sent-legend-val" style="">24%</span></div><div class="sent-legend-item"><span class="sent-legend-name" style="">쎔</span><span class="sent-legend-val" style="">9%</span></div><div class="sent-legend-item"><span class="sent-legend-name" style="">비즈넵</span><span class="sent-legend-val" style="">5%</span></div></div></div>
+    <div class="sent-card"><div class="sent-card-title">🔥 긍정 SOV</div><div class="sent-donut-wrap"><svg viewBox="0 0 80 80" id="sd1"><circle cx="40" cy="40" r="28" fill="none" stroke="#ff5252" stroke-width="11" stroke-dasharray="87.96459430051421 87.96459430051421" stroke-dashoffset="0"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#ffb740" stroke-width="11" stroke-dasharray="52.35987755982988 123.56931104119853" stroke-dashoffset="-87.96459430051421"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#22d37a" stroke-width="11" stroke-dasharray="16.755160819145562 159.17402778188284" stroke-dashoffset="-140.3244718603441"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#a594ff" stroke-width="11" stroke-dasharray="6.283185307179586 169.64600329384882" stroke-dashoffset="-157.07963267948966"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#7c6aff" stroke-width="11" stroke-dasharray="12.566370614359172 163.36281798666926" stroke-dashoffset="-163.36281798666926"></circle></svg><div class="sent-donut-center"><span class="sent-pct" style="color:var(--pos)">긍정</span></div></div><div class="sent-legend" id="sl1"><div class="sent-legend-item"><span class="sent-legend-name" style="">삼쩜삼</span><span class="sent-legend-val" style="">50%</span></div><div class="sent-legend-item"><span class="sent-legend-name" style="">토스인컴</span><span class="sent-legend-val" style="">30%</span></div><div class="sent-legend-item"><span class="sent-legend-name" style="">쎔</span><span class="sent-legend-val" style="">10%</span></div><div class="sent-legend-item"><span class="sent-legend-name" style="color:var(--accent2)">세이브택스</span><span class="sent-legend-val" style="color:var(--accent2)">7%</span></div></div></div>
+    <div class="sent-card"><div class="sent-card-title">💀 부정 SOV</div><div class="sent-donut-wrap"><svg viewBox="0 0 80 80" id="sd2"><circle cx="40" cy="40" r="28" fill="none" stroke="#ff5252" stroke-width="11" stroke-dasharray="123.15043202071988 52.77875658030854" stroke-dashoffset="0"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#ffb740" stroke-width="11" stroke-dasharray="28.58849314766712 147.3406954533613" stroke-dashoffset="-123.15043202071988"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#22d37a" stroke-width="11" stroke-dasharray="10.995574287564276 164.93361431346415" stroke-dashoffset="-151.738925168387"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#a594ff" stroke-width="11" stroke-dasharray="8.79645943005142 167.132729170977" stroke-dashoffset="-162.73449945595127"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#7c6aff" stroke-width="11" stroke-dasharray="4.39822971502571 171.5309588860027" stroke-dashoffset="-171.53095888600268"></circle></svg><div class="sent-donut-center"><span class="sent-pct" style="color:var(--neg)">부정</span></div></div><div class="sent-legend" id="sl2"><div class="sent-legend-item"><span class="sent-legend-name" style="">삼쩜삼</span><span class="sent-legend-val" style="">70%</span></div><div class="sent-legend-item"><span class="sent-legend-name" style="">토스인컴</span><span class="sent-legend-val" style="">16%</span></div><div class="sent-legend-item"><span class="sent-legend-name" style="">쎔</span><span class="sent-legend-val" style="">6%</span></div><div class="sent-legend-item"><span class="sent-legend-name" style="">비즈넵</span><span class="sent-legend-val" style="">5%</span></div></div></div>
+    <div class="sent-card"><div class="sent-card-title">😐 중립 SOV</div><div class="sent-donut-wrap"><svg viewBox="0 0 80 80" id="sd3"><circle cx="40" cy="40" r="28" fill="none" stroke="#ff5252" stroke-width="11" stroke-dasharray="79.58701389094142 96.342174710087" stroke-dashoffset="0"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#ffb740" stroke-width="11" stroke-dasharray="50.26548245743669 125.66370614359172" stroke-dashoffset="-79.58701389094142"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#22d37a" stroke-width="11" stroke-dasharray="23.038346126325152 152.89084247470328" stroke-dashoffset="-129.8524963483781"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#a594ff" stroke-width="11" stroke-dasharray="12.566370614359172 163.36281798666926" stroke-dashoffset="-152.89084247470328"></circle><circle cx="40" cy="40" r="28" fill="none" stroke="#7c6aff" stroke-width="11" stroke-dasharray="10.471975511965976 165.45721308906244" stroke-dashoffset="-165.45721308906246"></circle></svg><div class="sent-donut-center"><span class="sent-pct" style="color:var(--neu)">중립</span></div></div><div class="sent-legend" id="sl3"><div class="sent-legend-item"><span class="sent-legend-name" style="">삼쩜삼</span><span class="sent-legend-val" style="">45%</span></div><div class="sent-legend-item"><span class="sent-legend-name" style="">토스인컴</span><span class="sent-legend-val" style="">29%</span></div><div class="sent-legend-item"><span class="sent-legend-name" style="">쎔</span><span class="sent-legend-val" style="">13%</span></div><div class="sent-legend-item"><span class="sent-legend-name" style="">비즈넵</span><span class="sent-legend-val" style="">7%</span></div></div></div>
+  </div>
+
+  <!-- 03 HOT ISSUES -->
+  <div class="hot-section">
+    <div class="section-label">🔥 오늘의 Hot 이슈 <span class="idx">03 — 직전 24시간</span></div>
+    <div class="hot-grid" id="hotGrid">
+      <div class="hot-card" data-brand="삼쩜삼"><div class="hot-card-top"><span class="brand-tag">삼쩜삼</span><span class="sent-badge s-neg">💀 부정</span></div><div class="hot-title">"공정위 과징금 7100만원" — 거짓 환급 광고 제재 이후 불신 여론 재확산</div><div class="score-row"><span class="score-label">바이럴 스코어</span><div class="score-bar"><div class="score-fill f-neg" style="width:92%"></div></div><span class="score-val">92</span></div><div class="hot-meta"><span class="meta-item">⏱ 3시간 전</span><span class="meta-item">💬 5,200+</span><span class="meta-item">🔁 2,100+</span></div><div class="hot-channels"><span class="ch-tag">에펨코리아</span><span class="ch-tag">클리앙</span><span class="ch-tag">X</span><span class="ch-tag">네이버뉴스</span></div><div class="hot-tags"><span class="feed-hash">#광고제재</span><span class="feed-hash">#수수료논란</span><span class="feed-hash">#세금환급</span></div></div>
+      <div class="hot-card" data-brand="토스인컴"><div class="hot-card-top"><span class="brand-tag">토스인컴</span><span class="sent-badge s-pos">🔥 긍정</span></div><div class="hot-title">토스인컴 "추징 시 최대 50만원 보상" 제도 — 실사용자 호평 릴레이</div><div class="score-row"><span class="score-label">바이럴 스코어</span><div class="score-bar"><div class="score-fill f-pos" style="width:75%"></div></div><span class="score-val">75</span></div><div class="hot-meta"><span class="meta-item">⏱ 5시간 전</span><span class="meta-item">❤️ 8,400+</span><span class="meta-item">💬 1,900+</span></div><div class="hot-channels"><span class="ch-tag">스레드</span><span class="ch-tag">인스타그램</span><span class="ch-tag">블라인드</span></div><div class="hot-tags"><span class="feed-hash">#숨은환급찾기</span><span class="feed-hash">#추징보상</span></div></div>
+      <div class="hot-card" data-brand="원클릭"><div class="hot-card-top"><span class="brand-tag">국세청 원클릭</span><span class="sent-badge s-pos">🔥 긍정</span></div><div class="hot-title">국세청 '원클릭' 147만 명에 환급 안내 — "수수료 낼 필요 없다" 확산</div><div class="score-row"><span class="score-label">바이럴 스코어</span><div class="score-bar"><div class="score-fill f-pos" style="width:68%"></div></div><span class="score-val">68</span></div><div class="hot-meta"><span class="meta-item">⏱ 7시간 전</span><span class="meta-item">💬 2,600+</span><span class="meta-item">🔁 1,400+</span></div><div class="hot-channels"><span class="ch-tag">다음카페</span><span class="ch-tag">X</span><span class="ch-tag">네이버뉴스</span></div><div class="hot-tags"><span class="feed-hash">#무료환급</span><span class="feed-hash">#원클릭</span></div></div>
+      <div class="hot-card" data-brand="쎔"><div class="hot-card-top"><span class="brand-tag">쎔(SSEM)</span><span class="sent-badge s-neu">😐 중립</span></div><div class="hot-title">카카오뱅크 연동 '쎔' — 개인사업자 부가세 신고 간소화 후기 확산 중</div><div class="score-row"><span class="score-label">바이럴 스코어</span><div class="score-bar"><div class="score-fill f-neu" style="width:44%"></div></div><span class="score-val">44</span></div><div class="hot-meta"><span class="meta-item">⏱ 9시간 전</span><span class="meta-item">💬 640+</span></div><div class="hot-channels"><span class="ch-tag">네이버블로그</span><span class="ch-tag">카카오뷰</span></div><div class="hot-tags"><span class="feed-hash">#쎔</span><span class="feed-hash">#부가세신고</span></div></div>
+      <div class="hot-card" data-brand="비즈넵"><div class="hot-card-top"><span class="brand-tag">비즈넵</span><span class="sent-badge s-pos">🔥 긍정</span></div><div class="hot-title">비즈넵 AI+세무사 이중검토 — "믿을 수 있는 플랫폼" B2B 커뮤니티 호평</div><div class="score-row"><span class="score-label">바이럴 스코어</span><div class="score-bar"><div class="score-fill f-pos" style="width:38%"></div></div><span class="score-val">38</span></div><div class="hot-meta"><span class="meta-item">⏱ 12시간 전</span><span class="meta-item">💬 310+</span></div><div class="hot-channels"><span class="ch-tag">블라인드</span><span class="ch-tag">직장인카페</span></div><div class="hot-tags"><span class="feed-hash">#비즈넵</span><span class="feed-hash">#소상공인세무</span></div></div>
+      <div class="hot-card" data-brand="세이브택스" style="border-color:rgba(124,106,255,0.3)"><div class="hot-card-top"><span class="brand-tag" style="color:var(--accent2)">세이브택스 ✦</span><span class="sent-badge s-pos">🔥 긍정</span></div><div class="hot-title">세이브택스 "맞춤 절세 컨설팅 + 우리은행 제휴" — 창업자 후기 블로그 확산 시작</div><div class="score-row"><span class="score-label">바이럴 스코어</span><div class="score-bar"><div class="score-fill" style="width:29%;background:var(--accent)"></div></div><span class="score-val">29</span></div><div class="hot-meta"><span class="meta-item">⏱ 14시간 전</span><span class="meta-item">💬 180+</span></div><div class="hot-channels"><span class="ch-tag">네이버블로그</span><span class="ch-tag">인스타그램</span></div><div class="hot-tags"><span class="feed-hash">#세이브택스</span><span class="feed-hash">#절세컨설팅</span><span class="feed-hash">#창업세무</span></div></div>
+    </div>
+  </div>
+
+  <!-- 04 RISING -->
+  <div class="rising-section">
+    <div class="section-label">📈 Rising — 지금 빠르게 퍼지는 이슈 <span class="idx">04</span></div>
+    <div class="rising-list" id="risingList">
+      <div class="rising-item" data-brand="삼쩜삼"><span class="rising-rank">1</span><div class="rising-info"><div class="rising-title">삼쩜삼 공정위 과징금 — "이제 삼쩜삼 안 써도 되는 이유" 글 릴레이 확산</div><div class="rising-sub">에펨코리아 → 클리앙 → X 확산 · 3시간 전 시작</div></div><span class="rising-pct">+420% / 1h</span></div>
+      <div class="rising-item" data-brand="원클릭"><span class="rising-rank">2</span><div class="rising-info"><div class="rising-title">국세청 원클릭 "수수료 0원" 체험 후기 — 직장인 커뮤니티 중심 확산</div><div class="rising-sub">다음카페 자영업자 카페 → X · 5시간 전</div></div><span class="rising-pct">+280% / 2h</span></div>
+      <div class="rising-item" data-brand="토스인컴"><span class="rising-rank">3</span><div class="rising-info"><div class="rising-title">토스인컴 가입자 1000만 돌파 — "토스에서 세금까지" 인식 변화 감지</div><div class="rising-sub">스레드 · 인스타그램 · 7시간 전</div></div><span class="rising-pct">+190% / 3h</span></div>
+      <div class="rising-item" data-brand="세이브택스"><span class="rising-rank">4</span><div class="rising-info"><div class="rising-title">세이브택스 다이렉트 2만5천원 수수료 — "삼쩜삼 대안" 검색 유입 증가</div><div class="rising-sub">네이버 검색 · 블로그 · 9시간 전</div></div><span class="rising-pct" style="color:var(--accent2);background:rgba(124,106,255,0.08);border-color:rgba(124,106,255,0.2)">+140% / 6h ✦</span></div>
+      <div class="rising-item" data-brand="쎔"><span class="rising-rank">5</span><div class="rising-info"><div class="rising-title">쎔(SSEM) 카카오뱅크 연동 부가세 신고 — 사업자 자영업자 커뮤니티 입소문</div><div class="rising-sub">카카오뷰 · 네이버 카페 · 11시간 전</div></div><span class="rising-pct">+95% / 6h</span></div>
+    </div>
+  </div>
+
+  <!-- 05 FEED -->
+  <div class="feed-section">
+    <div class="section-label">📋 전체 이슈 피드 <span class="idx">05</span></div>
+    <div class="feed-filter">
+      <button class="filter-btn active" onclick="filterFeed(&#39;all&#39;,this)">전체</button>
+      <button class="filter-btn" onclick="filterFeed(&#39;pos&#39;,this)">🔥 긍정</button>
+      <button class="filter-btn" onclick="filterFeed(&#39;neg&#39;,this)">💀 부정</button>
+      <button class="filter-btn" onclick="filterFeed(&#39;neu&#39;,this)">😐 중립</button>
+      <button class="filter-btn" onclick="filterFeed(&#39;meme&#39;,this)">😂 밈/썰</button>
+      <button class="filter-btn" onclick="filterFeed(&#39;savetax&#39;,this)">✦ 세이브택스만</button>
+    </div>
+    <div class="feed-grid" id="feedGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);font-family:&#39;DM Mono&#39;,monospace;font-size:13px">
+        📡 Google Sheets에서 데이터를 불러오는 중...
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 TIMELINE -->
+  <div class="timeline-section">
+    <div class="section-label">🗓️ 오늘의 이슈 타임라인 <span class="idx">06</span></div>
+    <div id="timeline">
+      <div class="tl-item" data-brand="삼쩜삼"><div class="tl-left"><span class="tl-time">08:14</span></div><div class="tl-mid"><div class="tl-dot" style="border-color:var(--neg)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-brand">삼쩜삼 · 💀 부정</div><div class="tl-desc">공정위 과징금 7100만원 뉴스 배포 — 에펨코리아 실시간 1위, 불신 여론 폭발</div></div></div>
+      <div class="tl-item" data-brand="토스인컴"><div class="tl-left"><span class="tl-time">09:40</span></div><div class="tl-mid"><div class="tl-dot" style="border-color:var(--pos)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-brand">토스인컴 · 🔥 긍정</div><div class="tl-desc">추징 보상 제도 스레드 최초 업로드 → 인스타그램 확산, 삼쩜삼 대안 언급 급증</div></div></div>
+      <div class="tl-item" data-brand="원클릭"><div class="tl-left"><span class="tl-time">11:05</span></div><div class="tl-mid"><div class="tl-dot" style="border-color:var(--pos)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-brand">국세청 원클릭 · 🔥 긍정</div><div class="tl-desc">147만 명 환급 안내 SMS 발송 — "수수료 0원" 강조 글 다음카페·X 동시 확산</div></div></div>
+      <div class="tl-item" data-brand="세이브택스"><div class="tl-left"><span class="tl-time">13:20</span></div><div class="tl-mid"><div class="tl-dot" style="border-color:var(--accent)"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-brand" style="color:var(--accent2)">세이브택스 ✦ · 📈 기회</div><div class="tl-desc">네이버 "삼쩜삼 대안" 검색량 급증 — 세이브택스 블로그 후기 자연 유입 시작</div></div></div>
+      <div class="tl-item" data-brand="삼쩜삼"><div class="tl-left"><span class="tl-time">15:00 예측</span></div><div class="tl-mid"><div class="tl-dot" style="border-color:var(--text3);border-style:dashed"></div></div><div class="tl-content"><div class="tl-brand">삼쩜삼 · 🔍 모니터링</div><div class="tl-desc">삼쩜삼 공식 입장 발표 예정 — 확산 추이 추적 중</div></div></div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>🤖 유닛블랙 · SAVETAX 바이럴 모니터링 대시보드</span>
+  <span>수집채널: 네이버 뉴스/블로그/카페/웹문서 · 카카오 웹/블로그/카페/뉴스 · 실시간 데이터 기준</span>
+</footer>
+
+<script>
+const BC={삼쩜삼:'#ff5252',토스인컴:'#ffb740','국세청 원클릭':'#40cfff',쎔:'#22d37a',비즈넵:'#a594ff',세이브택스:'#7c6aff',국민의세무사:'#f06292'};
+const BRANDS=['삼쩜삼','토스인컴','국세청 원클릭','쎔','비즈넵','세이브택스','국민의세무사'];
+
+const SOV={
+  all:{삼쩜삼:52,토스인컴:21,원클릭:12,쎔:8,비즈넵:4,세이브택스:3},
+  세금:{삼쩜삼:48,토스인컴:22,원클릭:14,쎔:6,비즈넵:4,세이브택스:6},
+  절세:{삼쩜삼:38,토스인컴:18,원클릭:8,쎔:6,비즈넵:9,세이브택스:21},
+  세금환급:{삼쩜삼:58,토스인컴:24,원클릭:10,쎔:4,비즈넵:2,세이브택스:2},
+  경정청구:{삼쩜삼:61,토스인컴:18,원클릭:9,쎔:3,비즈넵:7,세이브택스:2},
+  부가세:{삼쩜삼:28,토스인컴:16,원클릭:10,쎔:24,비즈넵:10,세이브택스:12},
+  종합소득세:{삼쩜삼:44,토스인컴:28,원클릭:16,쎔:7,비즈넵:2,세이브택스:3},
+  연말정산:{삼쩜삼:49,토스인컴:22,원클릭:14,쎔:9,비즈넵:3,세이브택스:3},
+  프리랜서세금:{삼쩜삼:55,토스인컴:26,원클릭:9,쎔:5,비즈넵:2,세이브택스:3},
+  세금신고:{삼쩜삼:46,토스인컴:24,원클릭:15,쎔:8,비즈넵:3,세이브택스:4},
+  절세방법:{삼쩜삼:32,토스인컴:16,원클릭:10,쎔:7,비즈넵:8,세이브택스:27},
+  환급:{삼쩜삼:54,토스인컴:23,원클릭:13,쎔:5,비즈넵:3,세이브택스:2},
+  세무사:{삼쩜삼:30,토스인컴:14,원클릭:6,쎔:5,비즈넵:8,세이브택스:37},
+  세무기장:{삼쩜삼:22,토스인컴:10,원클릭:5,쎔:8,비즈넵:14,세이브택스:41},
+};
+const SENT={
+  all:{삼쩜삼:52,토스인컴:21,원클릭:12,쎔:8,비즈넵:4,세이브택스:3},
+  pos:{삼쩜삼:42,토스인컴:25,원클릭:16,쎔:8,비즈넵:3,세이브택스:6},
+  neg:{삼쩜삼:56,토스인컴:13,원클릭:6,쎔:5,비즈넵:4,세이브택스:2},
+  neu:{삼쩜삼:38,토스인컴:24,원클릭:16,쎔:11,비즈넵:6,세이브택스:5},
+};
+
+// 주차별 데이터 — 오늘 기준 동적 계산 (W = 이번 주, W-1, W-2 ...)
+function getMonday(d){
+  const day=d.getDay();
+  const diff=d.getDate()-(day===0?6:day-1);
+  const mon=new Date(d);mon.setDate(diff);mon.setHours(0,0,0,0);
+  return mon;
+}
+function fmt(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+// 오늘 기준 현재 주 월요일부터 12주 전까지 생성
+const thisMonday=getMonday(new Date());
+const WEEKLY_DATES=[];
+for(let i=11;i>=0;i--){
+  const d=new Date(thisMonday);
+  d.setDate(thisMonday.getDate()-i*7);
+  WEEKLY_DATES.push(fmt(d));
+}
+const TOTAL=WEEKLY_DATES.length;
+// W = 가장 최근(이번 주), W-1, W-2 ...
+const WEEKLY_LABELS=WEEKLY_DATES.map((_,i)=>{
+  const diff=TOTAL-1-i;
+  return diff===0?'W':`W-${diff}`;
+});
+const WEEKLY_SOV={
+  삼쩜삼: [55,54,56,53,55,58,60,57,54,52,51,52],
+  토스인컴:[14,15,16,17,18,17,19,20,21,21,22,21],
+  원클릭:  [10,10,10,11,11,11,10,11,12,12,13,12],
+  쎔:      [9, 9, 8, 8, 8, 7, 6, 7, 7, 8, 7, 8],
+  비즈넵:  [4, 4, 4, 5, 4, 4, 3, 3, 4, 4, 4, 4],
+  세이브택스:[8,8,6,6,4,3,2,2,2,3,3,3],
+};
+
+let activeBrands=new Set(BRANDS);
+let currentSovKw='all';
+let isLive=true;
+let areaChartInst=null;
+let activeWeekRange=null;
+
+// 시간
+function updateTime(){
+  const n=new Date();
+  document.getElementById('updateTime').textContent=
+    String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+' 갱신';
+}
+updateTime();setInterval(updateTime,60000);
+
+// LIVE 토글
+function toggleLive(){
+  isLive=!isLive;
+  const btn=document.getElementById('liveBtn');
+  const dot=document.getElementById('liveDot');
+  if(isLive){
+    btn.classList.add('active');
+    dot.style.animation='blink 1.8s infinite';
+    document.getElementById('periodBadge').classList.remove('visible');
+    document.getElementById('dateFrom').value='';
+    document.getElementById('dateTo').value='';
+    activeWeekRange=null;
+    renderAreaChart();
+  } else {
+    btn.classList.remove('active');
+    dot.style.animation='none';
+    dot.style.opacity='.35';
+  }
+}
+
+// 날짜 → 주차 인덱스 (해당 날짜가 속한 주차 찾기)
+function dateToWeekIdx(dateStr){
+  const d=new Date(dateStr);
+  // 날짜가 속한 주차: WEEKLY_DATES[i] <= d < WEEKLY_DATES[i+1]
+  for(let i=0;i<WEEKLY_DATES.length-1;i++){
+    if(d>=new Date(WEEKLY_DATES[i]) && d<new Date(WEEKLY_DATES[i+1])) return i;
+  }
+  // 마지막 주차 이후
+  if(d>=new Date(WEEKLY_DATES[WEEKLY_DATES.length-1])) return WEEKLY_DATES.length-1;
+  // 첫 주차 이전
+  return 0;
+}
+
+function applyDateRange(){
+  const f=document.getElementById('dateFrom').value;
+  const t=document.getElementById('dateTo').value;
+  if(!f||!t){alert('시작일과 종료일을 모두 입력해주세요.');return;}
+  if(f>t){alert('시작일이 종료일보다 늦을 수 없어요.');return;}
+  if(isLive)toggleLive();
+  const si=dateToWeekIdx(f);
+  const ei=dateToWeekIdx(t);
+  activeWeekRange=[Math.min(si,ei),Math.max(si,ei)];
+  const badge=document.getElementById('periodBadge');
+  const wFrom=WEEKLY_LABELS[activeWeekRange[0]];
+  const wTo=WEEKLY_LABELS[activeWeekRange[1]];
+  badge.textContent=wFrom+(wFrom===wTo?'':' ~ '+wTo)+' ('+f+' ~ '+t+')';
+  badge.classList.add('visible');
+  document.getElementById('updateTime').textContent='기간 조회 모드';
+  renderAreaChart();
+}
+
+// 키워드 토글
+function toggleKw(el){
+  const b=el.dataset.brand;if(!b)return;
+  el.classList.toggle('active');
+  activeBrands.has(b)?activeBrands.delete(b):activeBrands.add(b);
+  applyAll();
+}
+
+function applyAll(){
+  document.querySelectorAll('#hotGrid .hot-card').forEach(el=>el.classList.toggle('hidden',!activeBrands.has(el.dataset.brand)));
+  document.querySelectorAll('#risingList .rising-item').forEach(el=>el.classList.toggle('hidden',!activeBrands.has(el.dataset.brand)));
+  document.querySelectorAll('#timeline .tl-item').forEach(el=>el.classList.toggle('hidden',!activeBrands.has(el.dataset.brand)));
+  applyFeedFilter();
+  renderMainDonut();renderSovChart(currentSovKw);renderSentAll();renderAreaChart();
+}
+
+// 도넛 헬퍼
+function mkDonut(svgId,cx,cy,r,data){
+  const filtered=Object.fromEntries(Object.entries(data).filter(([b])=>activeBrands.has(b)));
+  const total=Object.values(filtered).reduce((a,b)=>a+b,0)||1;
+  const C=2*Math.PI*r;let offset=0;
+  const svg=document.getElementById(svgId);svg.innerHTML='';
+  Object.entries(filtered).forEach(([brand,raw])=>{
+    const dash=(raw/total)*C,gap=C-dash;
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',r);
+    c.setAttribute('fill','none');c.setAttribute('stroke',BC[brand]||'#888');
+    c.setAttribute('stroke-width',r>30?'14':'11');
+    c.setAttribute('stroke-dasharray',`${dash} ${gap}`);
+    c.setAttribute('stroke-dashoffset',String(-offset));
+    svg.appendChild(c);offset+=dash;
+  });
+  return filtered;
+}
+
+function renderMainDonut(){
+  const filtered=mkDonut('mainDonutSvg','50','50',38,SOV.all);
+  const total=Object.values(filtered).reduce((a,b)=>a+b,0)||1;
+  const leg=document.getElementById('mainLegend');leg.innerHTML='';
+  Object.entries(filtered).forEach(([brand,raw])=>{
+    const pct=Math.round(raw/total*100);const isSave=brand==='세이브택스';
+    leg.innerHTML+=`<div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:${BC[brand]||'#888'}"></div><span class="legend-name" style="${isSave?'color:var(--accent2);font-weight:500':''}">${brand}</span></div><span class="legend-pct" style="${isSave?'color:var(--accent2)':''}">${pct}%</span></div>`;
+  });
+}
+
+function renderSovChart(key){
+  currentSovKw=key;
+  const data=SOV[key]||SOV.all;
+  const filtered=Object.fromEntries(Object.entries(data).filter(([b])=>activeBrands.has(b)));
+  const total=Object.values(filtered).reduce((a,b)=>a+b,0)||1;
+  const c=document.getElementById('kwSovChart');c.innerHTML='';
+  Object.entries(filtered).sort((a,b)=>b[1]-a[1]).forEach(([brand,raw])=>{
+    const pct=Math.round(raw/total*100);const isSave=brand==='세이브택스';
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:8px';
+    row.innerHTML=`<span style="font-size:12px;color:${isSave?'var(--accent2)':'var(--text2)'};min-width:76px;font-weight:${isSave?500:400}">${brand}${isSave?' ✦':''}</span><div style="flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px"><div style="height:100%;width:${pct}%;background:${BC[brand]||'#888'};border-radius:3px;opacity:${isSave?1:.75}"></div></div><span style="font-size:12px;font-family:'DM Mono',monospace;color:${isSave?'var(--accent2)':'var(--text2)'};min-width:32px;text-align:right;font-weight:${isSave?500:400}">${pct}%</span>`;
+    c.appendChild(row);
+  });
+}
+function selectSovKw(el,key){document.querySelectorAll('.sov-kw').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderSovChart(key);}
+
+function renderSentDonut(svgId,legId,sentKey){
+  const filtered=mkDonut(svgId,'40','40',28,SENT[sentKey]);
+  const total=Object.values(filtered).reduce((a,b)=>a+b,0)||1;
+  const leg=document.getElementById(legId);leg.innerHTML='';
+  Object.entries(filtered).sort((a,b)=>b[1]-a[1]).slice(0,4).forEach(([brand,raw])=>{
+    const pct=Math.round(raw/total*100);const isSave=brand==='세이브택스';
+    leg.innerHTML+=`<div class="sent-legend-item"><span class="sent-legend-name" style="${isSave?'color:var(--accent2)':''}">${brand}</span><span class="sent-legend-val" style="${isSave?'color:var(--accent2)':''}">${pct}%</span></div>`;
+  });
+}
+function renderSentAll(){
+  renderSentDonut('sd0','sl0','all');renderSentDonut('sd1','sl1','pos');
+  renderSentDonut('sd2','sl2','neg');renderSentDonut('sd3','sl3','neu');
+}
+
+// 주차별 누적 영역 차트
+function renderAreaChart(){
+  const si=activeWeekRange?activeWeekRange[0]:0;
+  const ei=activeWeekRange?activeWeekRange[1]:TOTAL-1;
+  const slicedLabels=WEEKLY_LABELS.slice(si,ei+1);
+  const slicedDates=WEEKLY_DATES.slice(si,ei+1);
+  const activeBrandList=BRANDS.filter(b=>activeBrands.has(b));
+
+  // 라벨: W / W-N + 날짜 표기를 툴팁에
+  const chartLabels=slicedLabels.map((w,i)=>w+'\n'+slicedDates[i].slice(5)); // MM-DD
+
+  const rawData={};
+  activeBrandList.forEach(b=>{rawData[b]=WEEKLY_SOV[b].slice(si,ei+1);});
+  const totals=slicedLabels.map((_,i)=>activeBrandList.reduce((sum,b)=>sum+(rawData[b][i]||0),0));
+  const pctData={};
+  activeBrandList.forEach(b=>{
+    pctData[b]=rawData[b].map((v,i)=>totals[i]?Math.round(v/totals[i]*100):0);
+  });
+
+  const datasets=activeBrandList.map(b=>({
+    label:b,
+    data:pctData[b],
+    backgroundColor:BC[b]+(b==='세이브택스'?'cc':'55'),
+    borderColor:BC[b],
+    borderWidth:b==='세이브택스'?2:1,
+    fill:true,
+    tension:.35,
+    pointRadius:b==='세이브택스'?3:2,
+    pointBackgroundColor:BC[b],
+  }));
+
+  if(areaChartInst){areaChartInst.destroy();areaChartInst=null;}
+  const ctx=document.getElementById('areaChart').getContext('2d');
+  areaChartInst=new Chart(ctx,{
+    type:'line',
+    data:{labels:chartLabels,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      scales:{
+        x:{
+          stacked:true,
+          grid:{color:'rgba(255,255,255,0.05)'},
+          ticks:{
+            color:'#606078',
+            font:{size:10,family:"'DM Mono',monospace"},
+            maxRotation:0,
+          }
+        },
+        y:{stacked:true,min:0,max:100,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#606078',font:{size:11,family:"'DM Mono',monospace"},callback:v=>v+'%'}},
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(17,17,24,0.95)',
+          titleColor:'#f0f0f8',bodyColor:'#a0a0bc',
+          borderColor:'rgba(255,255,255,0.1)',borderWidth:1,
+          callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y}%`}
+        }
+      }
+    }
+  });
+
+  const legEl=document.getElementById('areaLegend');legEl.innerHTML='';
+  activeBrandList.forEach(b=>{
+    legEl.innerHTML+=`<div class="area-leg-item"><div class="area-leg-dot" style="background:${BC[b]}"></div><span>${b}</span></div>`;
+  });
+}
+
+// 피드 필터
+let curFeedFilter='all';
+function filterFeed(type,el){
+  curFeedFilter=type;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');applyFeedFilter();
+}
+function applyFeedFilter(){
+  document.querySelectorAll('#feedGrid .feed-card').forEach(item=>{
+    const bOk=activeBrands.has(item.dataset.brand);
+    let tOk=true;
+    if(curFeedFilter==='savetax')tOk=item.dataset.brand==='세이브택스';
+    else if(curFeedFilter!=='all')tOk=item.dataset.type===curFeedFilter;
+    item.classList.toggle('hidden',!bOk||!tOk);
+  });
+}
+
+renderMainDonut();renderSovChart('all');renderSentAll();renderAreaChart();
+
+// ── Google Sheets 피드 연동 ─────────────────────────
+const SHEETS_ID='1yevEvz00wWTgQ3-W3ApkCkTQTYszvbOJ4CaX1tDmjrw';
+const SHEETS_URL=`https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=피드`;
+
+function timeAgo(dateStr){
+  if(!dateStr)return '';
+  const d=new Date(dateStr);
+  if(isNaN(d))return dateStr;
+  const diff=Math.floor((Date.now()-d)/1000/60);
+  if(diff<60)return diff+'분 전';
+  if(diff<60*24)return Math.floor(diff/60)+'시간 전';
+  if(diff<60*24*7)return Math.floor(diff/60/24)+'일 전';
+  return dateStr.slice(0,10);
+}
+
+function sentClass(s){
+  if(s==='긍정')return 's-pos';
+  if(s==='부정')return 's-neg';
+  if(s==='중립')return 's-neu';
+  return 's-neu';
+}
+function sentEmoji(s){
+  if(s==='긍정')return '🔥 긍정';
+  if(s==='부정')return '💀 부정';
+  return '😐 중립';
+}
+function sentType(s){
+  if(s==='긍정')return 'pos';
+  if(s==='부정')return 'neg';
+  return 'neu';
+}
+
+async function loadFeedFromSheets(){
+  try{
+    const res=await fetch(SHEETS_URL);
+    const text=await res.text();
+    // Google Viz JSON 파싱
+    const json=JSON.parse(text.replace(/^.*?({.*}).*$/s,'$1'));
+    const rows=json.table.rows;
+    if(!rows||rows.length===0){
+      document.getElementById('feedGrid').innerHTML=
+        '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);font-size:13px">수집된 데이터가 없어요. collector.py를 실행해주세요.</div>';
+      return;
+    }
+
+    // 컬럼: A=수집일시 B=작성일 C=채널 D=브랜드 E=제목 F=내용요약 G=감성 H=원문URL I=댓글수
+    const items=rows.map(r=>{
+      const c=r.c;
+      return {
+        수집일시: c[0]?.v||'',
+        작성일:   c[1]?.v||'',
+        채널:     c[2]?.v||'',
+        브랜드:   c[3]?.v||'',
+        제목:     c[4]?.v||'',
+        내용요약: c[5]?.v||'',
+        감성:     c[6]?.v||'중립',
+        원문URL:  c[7]?.v||'',
+        댓글수:   c[8]?.v||'',
+      };
+    }).filter(i=>i.제목);
+
+    // 최신순 정렬
+    items.sort((a,b)=>b.작성일.localeCompare(a.작성일));
+
+    const grid=document.getElementById('feedGrid');
+    grid.innerHTML='';
+
+    items.forEach(item=>{
+      const isSave=item.브랜드==='세이브택스';
+      const sc=sentClass(item.감성);
+      const se=sentEmoji(item.감성);
+      const st=sentType(item.감성);
+      const borderStyle=isSave?'border-color:rgba(124,106,255,0.3)':'';
+      const brandStyle=isSave?'style="color:var(--accent2)"':'';
+      const brandLabel=isSave?item.브랜드+' ✦':item.브랜드;
+      const timeLabel=item.작성일?timeAgo(item.작성일):'';
+      const urlHtml=item.원문URL
+        ?`<a href="${item.원문URL}" target="_blank" class="feed-link">원문 ↗</a>`
+        :'';
+
+      const card=document.createElement('div');
+      card.className='feed-card';
+      card.dataset.type=st;
+      card.dataset.brand=item.브랜드;
+      if(borderStyle)card.style.cssText=borderStyle;
+      card.innerHTML=`
+        <div class="feed-card-top">
+          <span class="feed-brand" ${brandStyle}>${brandLabel}</span>
+          <span class="feed-time">${timeLabel}</span>
+        </div>
+        <span class="sent-badge ${sc}" style="width:fit-content">${se}</span>
+        <div class="feed-text">${item.제목}${item.내용요약?'<br><small style="color:var(--text3)">'+item.내용요약.slice(0,80)+'...</small>':''}</div>
+        <div class="feed-bottom">
+          <span class="feed-ch">${item.채널}</span>
+          ${urlHtml}
+        </div>`;
+      grid.appendChild(card);
+    });
+
+    // 필터 재적용
+    applyFeedFilter();
+    console.log(`✅ Sheets에서 ${items.length}개 피드 로드 완료`);
+
+  } catch(e){
+    console.error('Sheets 로드 오류:', e);
+    document.getElementById('feedGrid').innerHTML=
+      '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);font-size:13px">⚠️ 데이터 로드 실패. 스프레드시트 공개 설정을 확인해주세요.</div>';
+  }
+}
+
+// 페이지 로드 시 Sheets 데이터 불러오기
+loadFeedFromSheets();
+</script>
+
+
+</body></html>
