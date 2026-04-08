@@ -223,7 +223,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <span class="kw-tag active" data-brand="세이브택스" onclick="toggleKw(this)">세이브택스</span>
     <span class="kw-tag active" data-brand="삼쩜삼" onclick="toggleKw(this)">삼쩜삼</span>
     <span class="kw-tag active" data-brand="토스인컴" onclick="toggleKw(this)">토스인컴</span>
-    <span class="kw-tag active" data-brand="쎔" onclick="toggleKw(this)">쎔</span>
+    <span class="kw-tag active" data-brand="쌤157" onclick="toggleKw(this)">쌤157</span>
     <span class="kw-tag active" data-brand="비즈넵" onclick="toggleKw(this)">비즈넵</span>
     <span class="kw-tag active" data-brand="국세청 원클릭" onclick="toggleKw(this)">국세청 원클릭</span>
     <span class="kw-tag active" data-brand="국민의세무사" onclick="toggleKw(this)">국민의세무사</span>
@@ -250,10 +250,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
         <div class="divider"></div>
         <div>
           <div class="sov-card-title">연관 키워드별 점유율</div>
-        <div class="sov-kw-bar">
-            <input id="sovKwInput" type="text" placeholder="키워드 입력 후 엔터..." 
-              style="font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--border2);background:var(--bg);color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif;width:150px" 
-              onkeydown="if(event.key==='Enter') searchKwFromTop(this.value)">
+          <div class="sov-kw-bar">
+            <input id="sovKwInput" type="text" placeholder="키워드 검색..." style="font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--border2);background:var(--bg);color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif;width:130px" oninput="searchSovKw(this.value)">
             <button class="sov-kw active" onclick="selectSovKw(this,'all')">전체</button>
             <button class="sov-kw" onclick="selectSovKw(this,'세금')">세금</button>
             <button class="sov-kw" onclick="selectSovKw(this,'절세')">절세</button>
@@ -268,6 +266,9 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
             <button class="sov-kw" onclick="selectSovKw(this,'환급')">환급</button>
             <button class="sov-kw" onclick="selectSovKw(this,'세무사')">세무사</button>
             <button class="sov-kw" onclick="selectSovKw(this,'세무기장')">세무기장</button>
+          </div>
+          <!-- 연관 키워드 직접 검색 -->
+          <div style="display:flex;gap:8px;margin-bottom:14px">
           </div>
           <div id="kwSovChart"></div>
         </div>
@@ -339,24 +340,24 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 // 세이브택스를 가장 강렬한 포인트 컬러로, 나머지는 구분이 잘 되는 고유색으로 배치
 const BC = {
-  '세이브택스': '#ff5252',      // 가장 눈에 띄는 강렬한 레드 (기존 삼쩜삼 색상)
+  '세이브택스': '#ff5252',      // 가장 눈에 띄는 강렬한 레드
   '삼쩜삼': '#555566',         // 차분한 다크 그레이 (비중은 크지만 눈에 덜 띄게)
   '토스인컴': '#2291ff',       // 토스 고유의 블루
-  '쎔': '#22d37a',            // 신뢰를 주는 그린
+  '쌤157': '#22d37a',         // 신뢰를 주는 그린
   '비즈넵': '#ffb740',         // 화사한 오렌지
   '국세청 원클릭': '#40cfff',   // 밝은 스카이블루
   '국민의세무사': '#a594ff'     // 부드러운 퍼플
 };
-const BRANDS=['삼쩜삼','토스인컴','국세청 원클릭','쎔','비즈넵','세이브택스','국민의세무사'];
+const BRANDS=['삼쩜삼','토스인컴','국세청 원클릭','쌤157','비즈넵','세이브택스','국민의세무사'];
 
 const SOV={
-  all:{삼쩜삼:0,토스인컴:0,'국세청 원클릭':0,쎔:0,비즈넵:0,세이브택스:0,국민의세무사:0},
+  all:{삼쩜삼:0,토스인컴:0,'국세청 원클릭':0,쌤157:0,비즈넵:0,세이브택스:0,국민의세무사:0},
 };
 const SENT={
-  all:{삼쩜삼:0,토스인컴:0,'국세청 원클릭':0,쎔:0,비즈넵:0,세이브택스:0,국민의세무사:0},
-  pos:{삼쩜삼:0,토스인컴:0,'국세청 원클릭':0,쎔:0,비즈넵:0,세이브택스:0,국민의세무사:0},
-  neg:{삼쩜삼:0,토스인컴:0,'국세청 원클릭':0,쎔:0,비즈넵:0,세이브택스:0,국민의세무사:0},
-  neu:{삼쩜삼:0,토스인컴:0,'국세청 원클릭':0,쎔:0,비즈넵:0,세이브택스:0,국민의세무사:0},
+  all:{삼쩜삼:0,토스인컴:0,'국세청 원클릭':0,쌤157:0,비즈넵:0,세이브택스:0,국민의세무사:0},
+  pos:{삼쩜삼:0,토스인컴:0,'국세청 원클릭':0,쌤157:0,비즈넵:0,세이브택스:0,국민의세무사:0},
+  neg:{삼쩜삼:0,토스인컴:0,'국세청 원클릭':0,쌤157:0,비즈넵:0,세이브택스:0,국민의세무사:0},
+  neu:{삼쩜삼:0,토스인컴:0,'국세청 원클릭':0,쌤157:0,비즈넵:0,세이브택스:0,국민의세무사:0},
 };
 
 // 주차별 데이터 — 오늘 기준 동적 계산 (W = 이번 주, W-1, W-2 ...)
@@ -387,7 +388,7 @@ const WEEKLY_SOV={
   삼쩜삼:      Array(12).fill(0),
   토스인컴:    Array(12).fill(0),
   '국세청 원클릭': Array(12).fill(0),
-  쎔:          Array(12).fill(0),
+  쌤157:        Array(12).fill(0),
   비즈넵:      Array(12).fill(0),
   세이브택스:  Array(12).fill(0),
   국민의세무사: Array(12).fill(0),
@@ -521,23 +522,17 @@ function renderSovChart(key){
 }
 function searchKwFromTop(val) {
   if (!val.trim()) return;
-
   document.querySelectorAll('.sov-kw').forEach(function(btn) {
     btn.classList.remove('active');
   });
-
   const kwData = {};
-  BRANDS.forEach(function(brand) {
-    kwData[brand] = 0;
-  });
-
+  BRANDS.forEach(function(brand) { kwData[brand] = 0; });
   allItems.forEach(function(item) {
     const titleAndContent = (item.제목 + ' ' + item.내용요약).toLowerCase();
     if (titleAndContent.includes(val.toLowerCase()) && kwData[item.브랜드] !== undefined) {
       kwData[item.브랜드]++;
     }
   });
-
   SOV[val] = kwData;
   currentSovKw = val;
   renderSovChart(val);
@@ -548,12 +543,8 @@ function selectSovKw(el, key) {
     btn.classList.remove('active');
   });
   el.classList.add('active');
-
   const topInput = document.getElementById('sovKwInput');
-  if (topInput) {
-    topInput.value = '';
-  }
-
+  if (topInput) topInput.value = '';
   renderSovChart(key);
 }
 
@@ -595,13 +586,12 @@ function renderAreaChart(){
 
   // 최신 주(마지막 인덱스) 기준 내림차순 정렬 → 많은 항목이 아래에서 쌓임
   const lastWkIdx=slicedLabels.length-1;
-  const sortedBrands=[...activeBrandList].sort((a,b)=>(pctData[b][lastWkIdx]||0)-(pctData[a][lastWkIdx]||0));
+  const sortedBrands=[...activeBrandList].sort((a,b)=>(pctData[a][lastWkIdx]||0)-(pctData[b][lastWkIdx]||0));
 
   const datasets = sortedBrands.map(b => {
     const baseColor = BC[b] || '#888888';
     const isSave = b === '세이브택스';
 
-    // HEX를 HSL로 변환하여 채도를 대폭 낮추는 헬퍼 로직
     const hexToDesaturated = (hex) => {
       let r = parseInt(hex.slice(1, 3), 16) / 255;
       let g = parseInt(hex.slice(3, 5), 16) / 255;
@@ -618,29 +608,20 @@ function renderAreaChart(){
         }
         h /= 6;
       }
-      // 채도를 60%나 낮추어(s * 0.4) 훨씬 무채색에 가깝고 차분하게 변경
-      s = s * 0.4; 
-      // 명도는 선과 확실히 구분되도록 살짝 밝게 유지
-      l = l > 0.8 ? l : l * 1.1; 
+      s = s * 0.4;
+      l = l > 0.8 ? l : l * 1.1;
       return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
     };
-
-    const bgColor = hexToDesaturated(baseColor);
-    
-    // 세이브택스 선 두께를 4에서 2로 원복, 타사는 1로 설정
-    const bWidth = isSave ? 2 : 1;
 
     return {
       label: b,
       data: pctData[b],
-      // 더 차분해진 면 색상 적용
-      backgroundColor: bgColor, 
+      backgroundColor: hexToDesaturated(baseColor),
       borderColor: baseColor,
-      borderWidth: bWidth,
+      borderWidth: isSave ? 2 : 1,
       fill: true,
       tension: 0.35,
-      // 세이브택스 포인트 크기를 5에서 3으로 원복
-      pointRadius: isSave ? 3 : 2, 
+      pointRadius: isSave ? 3 : 2,
       pointBackgroundColor: baseColor,
       borderCapStyle: 'round',
       borderJoinStyle: 'round'
