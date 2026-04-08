@@ -571,7 +571,7 @@ function renderAreaChart(){
   // 최신 주(W) 기준 버즈 많은 순으로 정렬 → 많은 브랜드가 아래에서 쌓임
   const lastIdx=ei;
   const activeBrandList=BRANDS.filter(b=>activeBrands.has(b))
-    .sort((a,b)=>(WEEKLY_SOV[b][lastIdx]||0)-(WEEKLY_SOV[a][lastIdx]||0));
+    .sort((a,b)=>(WEEKLY_SOV[a][lastIdx]||0)-(WEEKLY_SOV[b][lastIdx]||0));
 
   // 라벨: W / W-N + 날짜 표기를 툴팁에
   const chartLabels=slicedLabels.map((w,i)=>w+'\n'+slicedDates[i].slice(5)); // MM-DD
@@ -586,7 +586,7 @@ function renderAreaChart(){
 
   // 최신 주(마지막 인덱스) 기준 내림차순 정렬 → 많은 항목이 아래에서 쌓임
   const lastWkIdx=slicedLabels.length-1;
-  const sortedBrands=[...activeBrandList].sort((a,b)=>(pctData[a][lastWkIdx]||0)-(pctData[b][lastWkIdx]||0));
+  const sortedBrands=[...activeBrandList].sort((a,b)=>(pctData[b][lastWkIdx]||0)-(pctData[a][lastWkIdx]||0));
 
   const datasets = sortedBrands.map(b => {
     const baseColor = BC[b] || '#888888';
