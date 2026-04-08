@@ -826,7 +826,7 @@ async function loadFeedFromSheets(){
       if(item.제목)hotMap[b].titles.push(item.제목);
       if(item.채널)hotMap[b].채널.add(item.채널.replace('네이버 ','').replace('카카오 ',''));
     });
-    const hotSorted=Object.values(hotMap).filter(h=>h.count>0).sort((a,b)=>b.count-a.count);
+    const hotSorted=Object.values(hotMap).filter(h=>h.count>0&&BC[h.brand]).sort((a,b)=>b.count-a.count);
     const hotGrid=document.getElementById('hotGrid');
     hotGrid.innerHTML='';
     hotSorted.forEach(h=>{
@@ -874,6 +874,7 @@ async function loadFeedFromSheets(){
       }
     });
     const latestItems=Object.values(latestByBrand)
+      .filter(item=>BC[item.브랜드])
       .sort((a,b)=>b.작성일.localeCompare(a.작성일));
     const risingList=document.getElementById('risingList');
     risingList.innerHTML='';
