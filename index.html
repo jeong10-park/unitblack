@@ -144,24 +144,14 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .feed-link{font-size:10px;color:var(--accent2);text-decoration:none;margin-left:auto}
 .feed-link:hover{text-decoration:underline}
 
-.timeline-section{margin-bottom:44px}
-.tl-item{display:flex}
-.tl-item.hidden{display:none}
-.tl-left{display:flex;flex-direction:column;align-items:flex-end;width:90px;flex-shrink:0;padding-right:14px}
-.tl-time{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;padding-top:1px}
-.tl-mid{display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0}
-.tl-dot{width:11px;height:11px;border-radius:50%;border:2px solid;flex-shrink:0}
-.tl-line{width:1px;background:var(--border);flex:1;min-height:24px}
-.tl-content{padding:0 0 22px 14px;flex:1}
-.tl-brand{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
-.tl-desc{font-size:13px;color:var(--text2);line-height:1.5}
+
 
 .footer{border-top:1px solid var(--border);padding:20px 32px;display:flex;justify-content:space-between;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;flex-wrap:wrap;gap:8px}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.sov-section,.sent-grid,.hot-section,.feed-section,.rising-section,.timeline-section{animation:fadeUp .45s ease both}
+.sov-section,.sent-grid,.hot-section,.feed-section,.rising-section{animation:fadeUp .45s ease both}
 .sov-section{animation-delay:.05s}.sent-grid{animation-delay:.1s}.hot-section{animation-delay:.15s}
-.feed-section{animation-delay:.2s}.rising-section{animation-delay:.25s}.timeline-section{animation-delay:.3s}
+.feed-section{animation-delay:.2s}.rising-section{animation-delay:.25s}
 
 @media(max-width:1100px){.sov-grid{grid-template-columns:1fr}}
 @media(max-width:900px){
@@ -323,13 +313,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     </div>
   </div>
 
-  <!-- 06 TIMELINE -->
-  <div class="timeline-section">
-    <div class="section-label">🗓️ 오늘의 이슈 타임라인 <span class="idx">06</span></div>
-    <div id="timeline">
-      <div style="padding:20px;color:var(--text3);font-size:13px">📡 데이터 불러오는 중...</div>
-    </div>
-  </div>
+
 </div>
 
 <footer class="footer">
@@ -471,7 +455,6 @@ function toggleKw(el){
 function applyAll(){
   document.querySelectorAll('#hotGrid .hot-card').forEach(el=>el.classList.toggle('hidden',!activeBrands.has(el.dataset.brand)));
   document.querySelectorAll('#risingList .rising-item').forEach(el=>el.classList.toggle('hidden',!activeBrands.has(el.dataset.brand)));
-  document.querySelectorAll('#timeline .tl-item').forEach(el=>el.classList.toggle('hidden',!activeBrands.has(el.dataset.brand)));
   applyFeedFilter();
   renderMainDonut();renderSovChart(currentSovKw);renderSentAll();renderAreaChart();
 }
@@ -909,46 +892,7 @@ async function loadFeedFromSheets(){
       });
     }
 
-    // ── 7. 타임라인 렌더 (오늘 작성일 기준) ───────────
-    const todayStr=new Date().toISOString().slice(0,10);
-    const tlItems=items
-      .filter(item=>item.작성일&&item.작성일.slice(0,10)===todayStr)
-      .sort((a,b)=>b.작성일.localeCompare(a.작성일))
-      .slice(0,8);
-    // 오늘 작성일 데이터 없으면 가장 최근 날짜 기준으로 대체
-    let tlFinal=tlItems;
-    if(tlItems.length===0){
-      const sortedByDate=[...items].filter(i=>i.작성일).sort((a,b)=>b.작성일.localeCompare(a.작성일));
-      const latestDate=sortedByDate[0]?.작성일?.slice(0,10)||'';
-      tlFinal=latestDate?sortedByDate.filter(i=>i.작성일.slice(0,10)===latestDate).slice(0,8):[];
-    }
-    const tl=document.getElementById('timeline');
-    tl.innerHTML='';
-    if(tlFinal.length===0){
-      tl.innerHTML='<div style="padding:20px;color:var(--text3);font-size:13px">데이터가 없어요. collector.py를 실행해주세요.</div>';
-    } else {
-      tlFinal.forEach((item,idx)=>{
-        const isSave=item.브랜드==='세이브택스';
-        const dotColor=item.감성==='긍정'?'var(--pos)':item.감성==='부정'?'var(--neg)':isSave?'var(--accent)':'var(--text3)';
-        const sentLabel=item.감성==='긍정'?'🔥 긍정':item.감성==='부정'?'💀 부정':'😐 중립';
-        // 작성일 표시 (날짜만)
-        const dateLabel=item.작성일?item.작성일.slice(0,10):'';
-        const brandLabel=isSave?`<span style="color:var(--accent2)">${item.브랜드} ✦</span>`:item.브랜드;
-        const isLast=idx===tlFinal.length-1;
-        tl.innerHTML+=`
-          <div class="tl-item" data-brand="${item.브랜드}">
-            <div class="tl-left"><span class="tl-time">${dateLabel}</span></div>
-            <div class="tl-mid">
-              <div class="tl-dot" style="border-color:${dotColor}"></div>
-              ${isLast?'':'<div class="tl-line"></div>'}
-            </div>
-            <div class="tl-content">
-              <div class="tl-brand">${brandLabel} · ${sentLabel}</div>
-              <div class="tl-desc">${item.제목.slice(0,60)}${item.제목.length>60?'...':''}</div>
-            </div>
-          </div>`;
-      });
-    }
+
 
     // ── 8. 연관 키워드 SOV 실제 데이터 계산 ──────────
     document.querySelectorAll('.sov-kw-bar .sov-kw').forEach(btn=>{
