@@ -482,7 +482,8 @@ function mkDonut(svgId,cx,cy,r,data){
   const total=Object.values(filtered).reduce((a,b)=>a+b,0)||1;
   const C=2*Math.PI*r;let offset=0;
   const svg=document.getElementById(svgId);svg.innerHTML='';
-  Object.entries(filtered).forEach(([brand,raw])=>{
+  // 내림차순 정렬 후 렌더
+  Object.entries(filtered).sort((a,b)=>b[1]-a[1]).forEach(([brand,raw])=>{
     const dash=(raw/total)*C,gap=C-dash;
     const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
     c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',r);
@@ -502,7 +503,8 @@ function renderMainDonut(){
   // 내림차순 정렬
   Object.entries(filtered).sort((a,b)=>b[1]-a[1]).forEach(([brand,raw])=>{
     const pct=Math.round(raw/total*100);const isSave=brand==='세이브택스';
-    leg.innerHTML+=`<div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:${BC[brand]||'#888'}"></div><span class="legend-name" style="${isSave?'color:var(--accent2);font-weight:500':''}">${brand}</span></div><span class="legend-pct" style="${isSave?'color:var(--accent2)':''}">${pct}%</span></div>`;
+    const color=BC[brand]||'#888';
+    leg.innerHTML+=`<div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:${color}"></div><span class="legend-name" style="${isSave?'color:var(--accent2);font-weight:500':''}">${brand}</span></div><span class="legend-pct" style="${isSave?'color:var(--accent2)':''}">${pct}%</span></div>`;
   });
 }
 
@@ -554,7 +556,14 @@ function renderSentDonut(svgId,legId,sentKey){
   const leg=document.getElementById(legId);leg.innerHTML='';
   Object.entries(filtered).sort((a,b)=>b[1]-a[1]).slice(0,4).forEach(([brand,raw])=>{
     const pct=Math.round(raw/total*100);const isSave=brand==='세이브택스';
-    leg.innerHTML+=`<div class="sent-legend-item"><span class="sent-legend-name" style="${isSave?'color:var(--accent2)':''}">${brand}</span><span class="sent-legend-val" style="${isSave?'color:var(--accent2)':''}">${pct}%</span></div>`;
+    const color=BC[brand]||'#888';
+    leg.innerHTML+=`<div class="sent-legend-item">
+      <div style="display:flex;align-items:center;gap:5px">
+        <div style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0"></div>
+        <span class="sent-legend-name" style="${isSave?'color:var(--accent2)':''}">${brand}</span>
+      </div>
+      <span class="sent-legend-val" style="${isSave?'color:var(--accent2)':''}">${pct}%</span>
+    </div>`;
   });
 }
 function renderSentAll(){
