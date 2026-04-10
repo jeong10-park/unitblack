@@ -735,11 +735,17 @@ async function loadFeedFromSheets(){
     }
 
     // 컬럼: A=수집일시 B=작성일 C=채널 D=브랜드 E=제목 F=내용요약 G=감성 H=원문URL I=댓글수
+    const since12w = get12WeeksAgoStr();
     const items=rows.map(r=>{
       const c=r.c;
+      // 수집일시·작성일 모두 parseGvizDate 로 파싱 (gviz Date(...) 형식 대응)
+      const 수집일시 = parseGvizDate(c[0]);
+      const 작성일raw = parseGvizDate(c[1]);
+      // 작성일 없으면 수집일시 fallback
+      const 작성일 = 작성일raw || 수집일시;
       return {
-        수집일시: c[0]?.v||'',
-        작성일:   parseGvizDate(c[1]),
+        수집일시,
+        작성일,
         채널:     c[2]?.v||'',
         브랜드:   c[3]?.v||'',
         제목:     c[4]?.v||'',
@@ -750,8 +756,8 @@ async function loadFeedFromSheets(){
       };
     }).filter(i=>{
       if(!i.제목) return false;
-      // 12주 범위 JS 필터 — 작성일 없는 건은 포함(수집일시로 나중에 처리)
-      if(i.작성일 && i.작성일 < get12WeeksAgoStr()) return false;
+      // 12주 범위 필터 (작성일=수집일시 fallback 적용 후)
+      if(i.작성일 && i.작성일 < since12w) return false;
       return true;
     });
 
@@ -810,10 +816,8 @@ async function loadFeedFromSheets(){
       const obj={};BRANDS.forEach(b=>obj[b]=0);return obj;
     });
     items_.forEach(item=>{
-      // 작성일 없으면 수집일시 fallback 사용
-      const dateStr=item.작성일||item.수집일시||'';
-      if(!dateStr)return;
-      const d=dateStr.slice(0,10);
+      const d=item.작성일.slice(0,10);
+      if(!d)return;
       let weekIdx=-1;
       for(let i=0;i<WEEKLY_DATES.length;i++){
         const weekStart=WEEKLY_DATES[i];
