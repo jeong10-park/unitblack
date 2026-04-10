@@ -858,12 +858,43 @@ async function loadFeedFromSheets(){
     });
 
     // ── 9. 브랜드별 핵심 키워드 실제 데이터 계산 ─
-    const stopWords=new Set(['이','그','저','것','수','있','없','하','되','않','같','때','위','더','또','및','등','를','을','가','은','는','로','에','의','와','과','한','된','으로','에서','에게','하여','하는','하고','이다','입니다','합니다','있다','없다','된다','서비스','이용','사용','신청','방법','경우','통해','위해','대한','관련']);
+    // 범용 불용어 + 배달앱 도메인 당연한 단어 모두 제거 → 가치판단/이미지성 워딩만 남김
+    const stopWords=new Set([
+      // 조사·어미·범용
+      '이','그','저','것','수','있','없','하','되','않','같','때','위','더','또','및','등',
+      '를','을','가','은','는','로','에','의','와','과','한','된','으로','에서','에게',
+      '하여','하는','하고','이다','입니다','합니다','있다','없다','된다','했다','한다',
+      '이런','저런','그런','어떤','이번','저번','그냥','정말','진짜','너무','매우','아주',
+      // 행위·범용동사
+      '서비스','이용','사용','신청','방법','경우','통해','위해','대한','관련','제공','운영',
+      '시작','완료','확인','진행','처리','등록','변경','선택','설정','업데이트','출시',
+      '내용','정보','안내','공지','발표','기준','통해서','기반','통합','지원','도입',
+      // 배달앱 도메인 당연한 단어
+      '배달','주문','음식','식당','가게','메뉴','배송','픽업','포장','라이더',
+      '앱','어플','플랫폼','서비스','주문앱','배달앱','음식점','식사','밥',
+      '요기요','쿠팡','배달의민족','배민','땡겨요','쿠팡이츠',
+      // 숫자·단위성
+      '개월','만원','원짜리','할인율','퍼센트','몇개','몇번',
+    ]);
+
+    // 조사 제거 함수 (어미 붙은 단어 정규화)
+    function stripJosa(w){
+      return w.replace(/(이|가|을|를|은|는|의|에|에서|으로|로|와|과|도|만|까지|부터|이나|나|든지)$/, '');
+    }
+
     const brandKwMap={};BRANDS.forEach(b=>brandKwMap[b]={});
     items.forEach(item=>{
       const b=item.브랜드;if(!brandKwMap[b])return;
-      const words=(item.제목+' '+item.내용요약).replace(/[^\w가-힣\s]/g,' ').split(/\s+/)
-        .filter(w=>w.length>=2&&!stopWords.has(w)&&!BRANDS.some(br=>w.includes(br)));
+      const words=(item.제목+' '+item.내용요약)
+        .replace(/[^\w가-힣\s]/g,' ')
+        .split(/\s+/)
+        .map(w=>stripJosa(w.trim()))
+        .filter(w=>
+          w.length>=2 &&
+          !stopWords.has(w) &&
+          !/^\d+$/.test(w) &&                          // 순수 숫자 제거
+          !BRANDS.some(br=>w.includes(br))             // 브랜드명 포함 단어 제거
+        );
       words.forEach(w=>{brandKwMap[b][w]=(brandKwMap[b][w]||0)+1;});
     });
     const kwListEl=document.getElementById('brandKwList');
@@ -878,9 +909,21 @@ async function loadFeedFromSheets(){
       });
     }
 
-    // ── 10. 피드 카드 렌더 (최신 24개) ─────────
-    items.sort((a,b)=>b.작성일.localeCompare(a.작성일));
-    const feedItems=items.slice(0,24);
+    // ── 10. 피드 카드 렌더 (브랜드별 균등 추출 후 날짜순, 총 24개) ─
+    // 브랜드별로 최신순 정렬 후 균등하게 추출 → 특정 브랜드 쏠림 방지
+    const PER_BRAND = Math.ceil(24 / BRANDS.length);  // 브랜드당 최대 6개
+    const brandPool = {};
+    BRANDS.forEach(b => {
+      brandPool[b] = items
+        .filter(i => i.브랜드 === b)
+        .sort((a,b) => b.작성일.localeCompare(a.작성일))
+        .slice(0, PER_BRAND);
+    });
+    // 전체 합쳐서 다시 날짜순 정렬 → 최신 24개
+    const feedItems = Object.values(brandPool)
+      .flat()
+      .sort((a,b) => b.작성일.localeCompare(a.작성일))
+      .slice(0, 24);
     const grid=document.getElementById('feedGrid');
     grid.innerHTML='';
     feedItems.forEach(item=>{
