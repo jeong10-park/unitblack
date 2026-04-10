@@ -679,25 +679,6 @@ async function fetchAllRows(){
   return allRows;
 }
 
-// gviz 날짜 파싱 — "Date(2026,3,10)" 형식 및 일반 문자열 모두 처리
-function parseGvizDate(cell){
-  if(!cell) return '';
-  // gviz가 날짜를 v:"Date(yyyy,m,d)" 형식으로 내려오는 경우
-  const v = cell.v || '';
-  const f = cell.f || '';
-  // "Date(2026,3,10)" 파싱 — 월은 0-based
-  const dm = String(v).match(/Date\((\d+),(\d+),(\d+)\)/);
-  if(dm){
-    const y=dm[1], m=String(Number(dm[2])+1).padStart(2,'0'), d=String(dm[3]).padStart(2,'0');
-    return `${y}-${m}-${d}`;
-  }
-  // f (formatted) 가 YYYY-MM-DD 형태인 경우
-  if(f && /^\d{4}-\d{2}-\d{2}/.test(f)) return f.slice(0,10);
-  // v 가 이미 YYYY-MM-DD 문자열인 경우
-  if(v && /^\d{4}-\d{2}-\d{2}/.test(String(v))) return String(v).slice(0,10);
-  return '';
-}
-
 function timeAgo(dateStr){
   if(!dateStr)return '';
   const d=new Date(dateStr);
@@ -735,17 +716,16 @@ async function loadFeedFromSheets(){
     }
 
     // 컬럼: A=수집일시 B=작성일 C=채널 D=브랜드 E=제목 F=내용요약 G=감성 H=원문URL I=댓글수
+    // B열(작성일)은 텍스트 "YYYY-MM-DD" 형식으로 저장됨 → .v 그대로 사용
     const since12w = get12WeeksAgoStr();
     const items=rows.map(r=>{
       const c=r.c;
-      // 수집일시·작성일 모두 parseGvizDate 로 파싱 (gviz Date(...) 형식 대응)
-      const 수집일시 = parseGvizDate(c[0]);
-      const 작성일raw = parseGvizDate(c[1]);
-      // 작성일 없으면 수집일시 fallback
-      const 작성일 = 작성일raw || 수집일시;
+      // gviz는 텍스트 셀을 .v 또는 .f 에 넣는 경우가 있어 둘 다 체크
+      const 작성일 = ((c[1]?.v ?? c[1]?.f) || '').toString().slice(0,10);
+      const 수집일시 = ((c[0]?.v ?? c[0]?.f) || '').toString().slice(0,10);
       return {
         수집일시,
-        작성일,
+        작성일: 작성일 || 수집일시,
         채널:     c[2]?.v||'',
         브랜드:   c[3]?.v||'',
         제목:     c[4]?.v||'',
@@ -756,7 +736,6 @@ async function loadFeedFromSheets(){
       };
     }).filter(i=>{
       if(!i.제목) return false;
-      // 12주 범위 필터 (작성일=수집일시 fallback 적용 후)
       if(i.작성일 && i.작성일 < since12w) return false;
       return true;
     });
