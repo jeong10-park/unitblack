@@ -648,10 +648,6 @@ renderMainDonut();renderSovChart('all');renderSentAll();renderAreaChart();
 const SHEETS_ID='1nCSiealiRKQM10OVkdank64se6PLijJNqfeTsvgSe3s';
 const SHEETS_BASE=`https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=피드`;
 
-
-  return allRows;
-}
-
 function timeAgo(dateStr){
   if(!dateStr)return '';
   const d=new Date(dateStr);
@@ -681,22 +677,12 @@ function sentType(s){
 
 async function loadFeedFromSheets(){
   try{
-    // ── offset 페이지네이션으로 전체 데이터 수집 ──────
-    let allRows=[];
-    let offset=0;
-    const limit=1000;
-    while(true){
-      const tq=`limit ${limit} offset ${offset}`;
-      const url=SHEETS_BASE+`&tq=${encodeURIComponent(tq)}`;
-      const res=await fetch(url);
-      const text=await res.text();
-      const json=JSON.parse(text.replace(/^.*?({.*}).*$/s,'$1'));
-      const rows=json.table?.rows||[];
-      if(rows.length===0) break;
-      allRows=allRows.concat(rows);
-      if(rows.length<limit) break;
-      offset+=limit;
-    }
+    // ── 전체 데이터 수집 (range로 충분히 큰 범위 지정) ──
+    const url=SHEETS_BASE+`&range=A1:I100000`;
+    const res=await fetch(url);
+    const text=await res.text();
+    const json=JSON.parse(text.replace(/^.*?({.*}).*$/s,'$1'));
+    const allRows=json.table?.rows||[];
 
     if(!allRows||allRows.length===0){
       document.getElementById('feedGrid').innerHTML=
