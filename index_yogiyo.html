@@ -646,8 +646,6 @@ renderMainDonut();renderSovChart('all');renderSentAll();renderAreaChart();
 
 // ── Google Sheets 피드 연동 ─────────────────────────
 const SHEETS_ID='1nCSiealiRKQM10OVkdank64se6PLijJNqfeTsvgSe3s';
-// gviz — 최근 12주 날짜 필터 + offset 페이지네이션
-// 데이터가 계속 쌓여도 항상 12주치만 읽으므로 로딩 속도 일정하게 유지
 const SHEETS_BASE=`https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=피드`;
 
 
