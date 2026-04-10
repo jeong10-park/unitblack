@@ -648,34 +648,9 @@ renderMainDonut();renderSovChart('all');renderSentAll();renderAreaChart();
 const SHEETS_ID='1nCSiealiRKQM10OVkdank64se6PLijJNqfeTsvgSe3s';
 // gviz — 최근 12주 날짜 필터 + offset 페이지네이션
 // 데이터가 계속 쌓여도 항상 12주치만 읽으므로 로딩 속도 일정하게 유지
-const SHEETS_BASE=`https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=피드&headers=1`;
+const SHEETS_BASE=`https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=피드`;
 
-function get12WeeksAgoStr(){
-  const d=new Date();
-  d.setDate(d.getDate()-84); // 12주 = 84일
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
 
-async function fetchAllRows(){
-  // B열 날짜 필터 없이 offset 페이지네이션으로 전체 수집
-  // (B열이 텍스트 타입이면 gviz date 비교가 작동 안 함)
-  // 12주 범위 필터링은 JS에서 수행
-  const since=get12WeeksAgoStr();
-  let allRows=[];
-  let offset=0;
-  const limit=1000;
-  while(true){
-    const tq=`limit ${limit} offset ${offset}`;
-    const url=SHEETS_BASE+`&tq=${encodeURIComponent(tq)}`;
-    const res=await fetch(url);
-    const text=await res.text();
-    const json=JSON.parse(text.replace(/^.*?({.*}).*$/s,'$1'));
-    const rows=json.table?.rows||[];
-    if(rows.length===0) break;
-    allRows=allRows.concat(rows);
-    if(rows.length<limit) break;
-    offset+=limit;
-  }
   return allRows;
 }
 
@@ -708,20 +683,35 @@ function sentType(s){
 
 async function loadFeedFromSheets(){
   try{
-    const rows=await fetchAllRows();
-    if(!rows||rows.length===0){
+    // ── offset 페이지네이션으로 전체 데이터 수집 ──────
+    let allRows=[];
+    let offset=0;
+    const limit=1000;
+    while(true){
+      const tq=`limit ${limit} offset ${offset}`;
+      const url=SHEETS_BASE+`&tq=${encodeURIComponent(tq)}`;
+      const res=await fetch(url);
+      const text=await res.text();
+      const json=JSON.parse(text.replace(/^.*?({.*}).*$/s,'$1'));
+      const rows=json.table?.rows||[];
+      if(rows.length===0) break;
+      allRows=allRows.concat(rows);
+      if(rows.length<limit) break;
+      offset+=limit;
+    }
+
+    if(!allRows||allRows.length===0){
       document.getElementById('feedGrid').innerHTML=
         '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);font-size:13px">수집된 데이터가 없어요. collector.py를 실행해주세요.</div>';
       return;
     }
 
     // 컬럼: A=수집일시 B=작성일 C=채널 D=브랜드 E=제목 F=내용요약 G=감성 H=원문URL I=댓글수
-    // B열(작성일)은 텍스트 "YYYY-MM-DD" 형식으로 저장됨 → .v 그대로 사용
-    const since12w = get12WeeksAgoStr();
-    const items=rows.map(r=>{
+    const items=allRows.map(r=>{
       const c=r.c;
       return {
-        작성일:   (c[1]?.v||'').toString().slice(0,10),
+        수집일시: c[0]?.v||'',
+        작성일:   c[1]?.v||'',
         채널:     c[2]?.v||'',
         브랜드:   c[3]?.v||'',
         제목:     c[4]?.v||'',
@@ -730,21 +720,15 @@ async function loadFeedFromSheets(){
         원문URL:  c[7]?.v||'',
         댓글수:   c[8]?.v||'',
       };
-    }).filter(i=>{
-      if(!i.제목) return false;
-      if(i.작성일 && i.작성일 < since12w) return false;
-      return true;
-    });
+    }).filter(i=>i.제목);
 
-    // ── 멀티브랜드 언급 제거 ─────────────────────────
+    // ── 멀티브랜드 언급 제거 ──────────────────────────
     // 제목+요약에 서로 다른 브랜드가 2개 이상 등장하면 제외
     // "배달의민족"과 "배민"은 같은 브랜드 → 1개로 취급
-    // 단, "배달의민족" 포함 텍스트에서 "배민" 단독 매칭 방지를 위해
-    // "배달의민족"을 먼저 제거한 텍스트로 "배민" 체크
     const filteredItems=items.filter(item=>{
       const text=(item.제목+' '+item.내용요약);
-      const textWithoutBaemin = text.replace(/배달의민족/g, '');
-      const hasBaemin = text.includes('배달의민족') || textWithoutBaemin.includes('배민');
+      const textNoBaemin=text.replace(/배달의민족/g,'');
+      const hasBaemin=text.includes('배달의민족')||textNoBaemin.includes('배민');
       const uniqueCount=[
         text.includes('요기요'),
         hasBaemin,
@@ -757,23 +741,20 @@ async function loadFeedFromSheets(){
     allItems=filteredItems;
     console.log(`✅ Sheets에서 ${items.length}개 로드, 멀티브랜드 제거 후 ${filteredItems.length}개`);
 
-    // filteredItems를 이후 모든 집계에 사용
-    const items_=filteredItems;
-
-    // ── 1. SOV 계산 ────────────────────────────────
+    // ── 1. SOV 계산 ───────────────────────────────────
     const sovCount={};BRANDS.forEach(b=>sovCount[b]=0);
-    items_.forEach(item=>{
+    filteredItems.forEach(item=>{
       if(sovCount[item.브랜드]!==undefined) sovCount[item.브랜드]++;
     });
     BRANDS.forEach(b=>{ SOV.all[b]=sovCount[b]||0; });
 
-    // ── 2. 감성별 SOV 계산 ────────────────────────
+    // ── 2. 감성별 SOV 계산 ────────────────────────────
     const sentCount={all:{},pos:{},neg:{},neu:{}};
     BRANDS.forEach(b=>{
       sentCount.all[b]=0;sentCount.pos[b]=0;
       sentCount.neg[b]=0;sentCount.neu[b]=0;
     });
-    items_.forEach(item=>{
+    filteredItems.forEach(item=>{
       const b=item.브랜드;
       if(sentCount.all[b]===undefined)return;
       sentCount.all[b]++;
@@ -786,13 +767,13 @@ async function loadFeedFromSheets(){
       SENT.neg[b]=sentCount.neg[b]||0;SENT.neu[b]=sentCount.neu[b]||0;
     });
 
-    // ── 3. 주차별 SOV 계산 ────────────────────────
+    // ── 3. 주차별 SOV 계산 ────────────────────────────
     const weeklyCounts=WEEKLY_DATES.map(()=>{
       const obj={};BRANDS.forEach(b=>obj[b]=0);return obj;
     });
-    items_.forEach(item=>{
-      const d=item.작성일;
-      if(!d)return;
+    filteredItems.forEach(item=>{
+      if(!item.작성일)return;
+      const d=item.작성일.slice(0,10);
       let weekIdx=-1;
       for(let i=0;i<WEEKLY_DATES.length;i++){
         const weekStart=WEEKLY_DATES[i];
@@ -810,12 +791,12 @@ async function loadFeedFromSheets(){
       });
     });
 
-    // ── 4. 차트 전체 리렌더 ──────────────────────
+    // ── 4. 차트 전체 리렌더 ───────────────────────────
     renderMainDonut();renderSovChart(currentSovKw);renderSentAll();renderAreaChart();
 
-    // ── 5. Hot 이슈 렌더 (브랜드별 버즈량) ──────
+    // ── 5. Hot 이슈 렌더 (브랜드별 버즈량) ───────────
     const hotMap={};
-    items_.forEach(item=>{
+    filteredItems.forEach(item=>{
       const b=item.브랜드;
       if(!hotMap[b])hotMap[b]={brand:b,count:0,pos:0,neg:0,neu:0,titles:[],채널:new Set()};
       hotMap[b].count++;
@@ -860,9 +841,9 @@ async function loadFeedFromSheets(){
         </div>`;
     });
 
-    // ── 6. 브랜드별 최신 피드 렌더 ──────────────
+    // ── 6. 브랜드별 최신 피드 렌더 ───────────────────
     const latestByBrand={};
-    items_.forEach(item=>{
+    filteredItems.forEach(item=>{
       const b=item.브랜드;
       if(!item.작성일)return;
       if(!latestByBrand[b]||item.작성일>latestByBrand[b].작성일){
@@ -898,56 +879,41 @@ async function loadFeedFromSheets(){
       });
     }
 
-    // ── 8. 연관 키워드 SOV 실제 데이터 계산 ─────
+    // ── 8. 연관 키워드 SOV 실제 데이터 계산 ──────────
     document.querySelectorAll('.sov-kw-bar .sov-kw').forEach(btn=>{
       const kw=btn.textContent.trim();
       if(kw==='전체')return;
       const kwData={};BRANDS.forEach(b=>kwData[b]=0);
-      items_.forEach(item=>{
+      filteredItems.forEach(item=>{
         const text=(item.제목+' '+item.내용요약).toLowerCase();
         if(text.includes(kw.toLowerCase())&&kwData[item.브랜드]!==undefined) kwData[item.브랜드]++;
       });
       SOV[kw]=kwData;
     });
 
-    // ── 9. 브랜드별 핵심 키워드 실제 데이터 계산 ─
-    // 범용 불용어 + 배달앱 도메인 당연한 단어 모두 제거 → 가치판단/이미지성 워딩만 남김
+    // ── 9. 브랜드별 핵심 키워드 ──────────────────────
     const stopWords=new Set([
-      // 조사·어미·범용
       '이','그','저','것','수','있','없','하','되','않','같','때','위','더','또','및','등',
       '를','을','가','은','는','로','에','의','와','과','한','된','으로','에서','에게',
       '하여','하는','하고','이다','입니다','합니다','있다','없다','된다','했다','한다',
       '이런','저런','그런','어떤','이번','저번','그냥','정말','진짜','너무','매우','아주',
-      // 행위·범용동사
       '서비스','이용','사용','신청','방법','경우','통해','위해','대한','관련','제공','운영',
       '시작','완료','확인','진행','처리','등록','변경','선택','설정','업데이트','출시',
       '내용','정보','안내','공지','발표','기준','통해서','기반','통합','지원','도입',
-      // 배달앱 도메인 당연한 단어
       '배달','주문','음식','식당','가게','메뉴','배송','픽업','포장','라이더',
-      '앱','어플','플랫폼','서비스','주문앱','배달앱','음식점','식사','밥',
+      '앱','어플','플랫폼','주문앱','배달앱','음식점','식사','밥',
       '요기요','쿠팡','배달의민족','배민','땡겨요','쿠팡이츠',
-      // 숫자·단위성
-      '개월','만원','원짜리','할인율','퍼센트','몇개','몇번',
     ]);
-
-    // 조사 제거 함수 (어미 붙은 단어 정규화)
     function stripJosa(w){
-      return w.replace(/(이|가|을|를|은|는|의|에|에서|으로|로|와|과|도|만|까지|부터|이나|나|든지)$/, '');
+      return w.replace(/(이|가|을|를|은|는|의|에|에서|으로|로|와|과|도|만|까지|부터|이나|나)$/,'');
     }
-
     const brandKwMap={};BRANDS.forEach(b=>brandKwMap[b]={});
-    items_.forEach(item=>{
+    filteredItems.forEach(item=>{
       const b=item.브랜드;if(!brandKwMap[b])return;
       const words=(item.제목+' '+item.내용요약)
-        .replace(/[^\w가-힣\s]/g,' ')
-        .split(/\s+/)
+        .replace(/[^\w가-힣\s]/g,' ').split(/\s+/)
         .map(w=>stripJosa(w.trim()))
-        .filter(w=>
-          w.length>=2 &&
-          !stopWords.has(w) &&
-          !/^\d+$/.test(w) &&                          // 순수 숫자 제거
-          !BRANDS.some(br=>w.includes(br))             // 브랜드명 포함 단어 제거
-        );
+        .filter(w=>w.length>=2&&!stopWords.has(w)&&!/^\d+$/.test(w)&&!BRANDS.some(br=>w.includes(br)));
       words.forEach(w=>{brandKwMap[b][w]=(brandKwMap[b][w]||0)+1;});
     });
     const kwListEl=document.getElementById('brandKwList');
@@ -962,21 +928,19 @@ async function loadFeedFromSheets(){
       });
     }
 
-    // ── 10. 피드 카드 렌더 (브랜드별 균등 추출 후 날짜순, 총 24개) ─
-    // 브랜드별로 최신순 정렬 후 균등하게 추출 → 특정 브랜드 쏠림 방지
-    const PER_BRAND = Math.ceil(24 / BRANDS.length);  // 브랜드당 최대 6개
-    const brandPool = {};
-    BRANDS.forEach(b => {
-      brandPool[b] = items_
-        .filter(i => i.브랜드 === b)
-        .sort((a,b) => b.작성일.localeCompare(a.작성일))
-        .slice(0, PER_BRAND);
+    // ── 10. 피드 카드 렌더 (브랜드별 균등 추출, 총 24개) ─
+    const PER_BRAND=Math.ceil(24/BRANDS.length);
+    const brandPool={};
+    BRANDS.forEach(b=>{
+      brandPool[b]=filteredItems
+        .filter(i=>i.브랜드===b)
+        .sort((a,b)=>b.작성일.localeCompare(a.작성일))
+        .slice(0,PER_BRAND);
     });
-    // 전체 합쳐서 다시 날짜순 정렬 → 최신 24개
-    const feedItems = Object.values(brandPool)
+    const feedItems=Object.values(brandPool)
       .flat()
-      .sort((a,b) => b.작성일.localeCompare(a.작성일))
-      .slice(0, 24);
+      .sort((a,b)=>b.작성일.localeCompare(a.작성일))
+      .slice(0,24);
     const grid=document.getElementById('feedGrid');
     grid.innerHTML='';
     feedItems.forEach(item=>{
@@ -1000,7 +964,7 @@ async function loadFeedFromSheets(){
       grid.appendChild(card);
     });
     applyFeedFilter();
-    console.log(`✅ Sheets에서 ${items_.length}개 로드 완료`);
+    console.log(`✅ 최종 렌더 완료: ${filteredItems.length}개`);
 
   } catch(e){
     console.error('Sheets 로드 오류:', e);
