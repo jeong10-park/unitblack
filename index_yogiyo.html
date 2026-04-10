@@ -648,7 +648,7 @@ renderMainDonut();renderSovChart('all');renderSentAll();renderAreaChart();
 const SHEETS_ID='1nCSiealiRKQM10OVkdank64se6PLijJNqfeTsvgSe3s';
 // gviz — 최근 12주 날짜 필터 + offset 페이지네이션
 // 데이터가 계속 쌓여도 항상 12주치만 읽으므로 로딩 속도 일정하게 유지
-const SHEETS_BASE=`https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=피드`;
+const SHEETS_BASE=`https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=피드&headers=1`;
 
 function get12WeeksAgoStr(){
   const d=new Date();
@@ -720,12 +720,8 @@ async function loadFeedFromSheets(){
     const since12w = get12WeeksAgoStr();
     const items=rows.map(r=>{
       const c=r.c;
-      // gviz는 텍스트 셀을 .v 또는 .f 에 넣는 경우가 있어 둘 다 체크
-      const 작성일 = ((c[1]?.v ?? c[1]?.f) || '').toString().slice(0,10);
-      const 수집일시 = ((c[0]?.v ?? c[0]?.f) || '').toString().slice(0,10);
       return {
-        수집일시,
-        작성일: 작성일 || 수집일시,
+        작성일:   (c[1]?.v||'').toString().slice(0,10),
         채널:     c[2]?.v||'',
         브랜드:   c[3]?.v||'',
         제목:     c[4]?.v||'',
@@ -795,7 +791,7 @@ async function loadFeedFromSheets(){
       const obj={};BRANDS.forEach(b=>obj[b]=0);return obj;
     });
     items_.forEach(item=>{
-      const d=item.작성일.slice(0,10);
+      const d=item.작성일;
       if(!d)return;
       let weekIdx=-1;
       for(let i=0;i<WEEKLY_DATES.length;i++){
