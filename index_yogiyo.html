@@ -657,14 +657,15 @@ function get12WeeksAgoStr(){
 }
 
 async function fetchAllRows(){
+  // B열 날짜 필터 없이 offset 페이지네이션으로 전체 수집
+  // (B열이 텍스트 타입이면 gviz date 비교가 작동 안 함)
+  // 12주 범위 필터링은 JS에서 수행
   const since=get12WeeksAgoStr();
-  // B열(작성일) >= 12주 전 OR B열 비어있는 경우(수집일시 기준 처리를 위해 포함)
-  const tqFilter=`where B >= date '${since}' or B is null`;
   let allRows=[];
   let offset=0;
   const limit=1000;
   while(true){
-    const tq=`${tqFilter} limit ${limit} offset ${offset}`;
+    const tq=`limit ${limit} offset ${offset}`;
     const url=SHEETS_BASE+`&tq=${encodeURIComponent(tq)}`;
     const res=await fetch(url);
     const text=await res.text();
@@ -676,6 +677,25 @@ async function fetchAllRows(){
     offset+=limit;
   }
   return allRows;
+}
+
+// gviz 날짜 파싱 — "Date(2026,3,10)" 형식 및 일반 문자열 모두 처리
+function parseGvizDate(cell){
+  if(!cell) return '';
+  // gviz가 날짜를 v:"Date(yyyy,m,d)" 형식으로 내려오는 경우
+  const v = cell.v || '';
+  const f = cell.f || '';
+  // "Date(2026,3,10)" 파싱 — 월은 0-based
+  const dm = String(v).match(/Date\((\d+),(\d+),(\d+)\)/);
+  if(dm){
+    const y=dm[1], m=String(Number(dm[2])+1).padStart(2,'0'), d=String(dm[3]).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+  // f (formatted) 가 YYYY-MM-DD 형태인 경우
+  if(f && /^\d{4}-\d{2}-\d{2}/.test(f)) return f.slice(0,10);
+  // v 가 이미 YYYY-MM-DD 문자열인 경우
+  if(v && /^\d{4}-\d{2}-\d{2}/.test(String(v))) return String(v).slice(0,10);
+  return '';
 }
 
 function timeAgo(dateStr){
@@ -719,7 +739,7 @@ async function loadFeedFromSheets(){
       const c=r.c;
       return {
         수집일시: c[0]?.v||'',
-        작성일:   c[1]?.v||'',
+        작성일:   parseGvizDate(c[1]),
         채널:     c[2]?.v||'',
         브랜드:   c[3]?.v||'',
         제목:     c[4]?.v||'',
@@ -728,7 +748,12 @@ async function loadFeedFromSheets(){
         원문URL:  c[7]?.v||'',
         댓글수:   c[8]?.v||'',
       };
-    }).filter(i=>i.제목);
+    }).filter(i=>{
+      if(!i.제목) return false;
+      // 12주 범위 JS 필터 — 작성일 없는 건은 포함(수집일시로 나중에 처리)
+      if(i.작성일 && i.작성일 < get12WeeksAgoStr()) return false;
+      return true;
+    });
 
     // ── 멀티브랜드 언급 제거 ─────────────────────────
     // 제목+요약에 2개 이상 브랜드명이 등장하면 특정 브랜드로 분류 불가 → 제외
