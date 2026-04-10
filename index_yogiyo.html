@@ -810,8 +810,10 @@ async function loadFeedFromSheets(){
       const obj={};BRANDS.forEach(b=>obj[b]=0);return obj;
     });
     items_.forEach(item=>{
-      if(!item.작성일)return;
-      const d=item.작성일.slice(0,10);
+      // 작성일 없으면 수집일시 fallback 사용
+      const dateStr=item.작성일||item.수집일시||'';
+      if(!dateStr)return;
+      const d=dateStr.slice(0,10);
       let weekIdx=-1;
       for(let i=0;i<WEEKLY_DATES.length;i++){
         const weekStart=WEEKLY_DATES[i];
