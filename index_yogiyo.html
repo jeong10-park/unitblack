@@ -646,8 +646,38 @@ renderMainDonut();renderSovChart('all');renderSentAll();renderAreaChart();
 
 // ── Google Sheets 피드 연동 ─────────────────────────
 // ★ 아래 SHEETS_ID를 요기요 전용 스프레드시트 ID로 교체하세요 ★
-const SHEETS_ID='1nCSiealiRKQM10OVkdank64se6PLijJNqfeTsvgSe3s';
-const SHEETS_URL=`https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=피드`;
+const SHEETS_ID='YOUR_YOGIYO_SHEETS_ID_HERE';
+// gviz — 최근 12주 날짜 필터 + offset 페이지네이션
+// 데이터가 계속 쌓여도 항상 12주치만 읽으므로 로딩 속도 일정하게 유지
+const SHEETS_BASE=`https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=피드`;
+
+function get12WeeksAgoStr(){
+  const d=new Date();
+  d.setDate(d.getDate()-84); // 12주 = 84일
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+async function fetchAllRows(){
+  const since=get12WeeksAgoStr();
+  // B열(작성일) >= 12주 전 OR B열 비어있는 경우(수집일시 기준 처리를 위해 포함)
+  const tqFilter=`where B >= date '${since}' or B is null`;
+  let allRows=[];
+  let offset=0;
+  const limit=1000;
+  while(true){
+    const tq=`${tqFilter} limit ${limit} offset ${offset}`;
+    const url=SHEETS_BASE+`&tq=${encodeURIComponent(tq)}`;
+    const res=await fetch(url);
+    const text=await res.text();
+    const json=JSON.parse(text.replace(/^.*?({.*}).*$/s,'$1'));
+    const rows=json.table?.rows||[];
+    if(rows.length===0) break;
+    allRows=allRows.concat(rows);
+    if(rows.length<limit) break;
+    offset+=limit;
+  }
+  return allRows;
+}
 
 function timeAgo(dateStr){
   if(!dateStr)return '';
@@ -678,10 +708,7 @@ function sentType(s){
 
 async function loadFeedFromSheets(){
   try{
-    const res=await fetch(SHEETS_URL);
-    const text=await res.text();
-    const json=JSON.parse(text.replace(/^.*?({.*}).*$/s,'$1'));
-    const rows=json.table.rows;
+    const rows=await fetchAllRows();
     if(!rows||rows.length===0){
       document.getElementById('feedGrid').innerHTML=
         '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);font-size:13px">수집된 데이터가 없어요. collector.py를 실행해주세요.</div>';
@@ -704,12 +731,32 @@ async function loadFeedFromSheets(){
       };
     }).filter(i=>i.제목);
 
-    allItems=items;
-    console.log(`✅ Sheets에서 ${items.length}개 로드 완료`);
+    // ── 멀티브랜드 언급 제거 ─────────────────────────
+    // 제목+요약에 2개 이상 브랜드명이 등장하면 특정 브랜드로 분류 불가 → 제외
+    const BRAND_NAMES=['요기요','쿠팡이츠','배달의민족','배민','땡겨요'];
+    const filteredItems=items.filter(item=>{
+      const text=(item.제목+' '+item.내용요약);
+      const matchCount=BRAND_NAMES.filter(b=>text.includes(b)).length;
+      // "배달의민족"+"배민" 은 같은 브랜드이므로 1개로 취급
+      const hasBaemin=text.includes('배달의민족')||text.includes('배민');
+      const uniqueCount=[
+        text.includes('요기요'),
+        hasBaemin,
+        text.includes('쿠팡이츠'),
+        text.includes('땡겨요'),
+      ].filter(Boolean).length;
+      return uniqueCount<=1;
+    });
+
+    allItems=filteredItems;
+    console.log(`✅ Sheets에서 ${items.length}개 로드, 멀티브랜드 제거 후 ${filteredItems.length}개`);
+
+    // filteredItems를 이후 모든 집계에 사용
+    const items_=filteredItems;
 
     // ── 1. SOV 계산 ────────────────────────────────
     const sovCount={};BRANDS.forEach(b=>sovCount[b]=0);
-    items.forEach(item=>{
+    items_.forEach(item=>{
       if(sovCount[item.브랜드]!==undefined) sovCount[item.브랜드]++;
     });
     BRANDS.forEach(b=>{ SOV.all[b]=sovCount[b]||0; });
@@ -720,7 +767,7 @@ async function loadFeedFromSheets(){
       sentCount.all[b]=0;sentCount.pos[b]=0;
       sentCount.neg[b]=0;sentCount.neu[b]=0;
     });
-    items.forEach(item=>{
+    items_.forEach(item=>{
       const b=item.브랜드;
       if(sentCount.all[b]===undefined)return;
       sentCount.all[b]++;
@@ -737,7 +784,7 @@ async function loadFeedFromSheets(){
     const weeklyCounts=WEEKLY_DATES.map(()=>{
       const obj={};BRANDS.forEach(b=>obj[b]=0);return obj;
     });
-    items.forEach(item=>{
+    items_.forEach(item=>{
       if(!item.작성일)return;
       const d=item.작성일.slice(0,10);
       let weekIdx=-1;
@@ -762,7 +809,7 @@ async function loadFeedFromSheets(){
 
     // ── 5. Hot 이슈 렌더 (브랜드별 버즈량) ──────
     const hotMap={};
-    items.forEach(item=>{
+    items_.forEach(item=>{
       const b=item.브랜드;
       if(!hotMap[b])hotMap[b]={brand:b,count:0,pos:0,neg:0,neu:0,titles:[],채널:new Set()};
       hotMap[b].count++;
@@ -809,7 +856,7 @@ async function loadFeedFromSheets(){
 
     // ── 6. 브랜드별 최신 피드 렌더 ──────────────
     const latestByBrand={};
-    items.forEach(item=>{
+    items_.forEach(item=>{
       const b=item.브랜드;
       if(!item.작성일)return;
       if(!latestByBrand[b]||item.작성일>latestByBrand[b].작성일){
@@ -850,7 +897,7 @@ async function loadFeedFromSheets(){
       const kw=btn.textContent.trim();
       if(kw==='전체')return;
       const kwData={};BRANDS.forEach(b=>kwData[b]=0);
-      items.forEach(item=>{
+      items_.forEach(item=>{
         const text=(item.제목+' '+item.내용요약).toLowerCase();
         if(text.includes(kw.toLowerCase())&&kwData[item.브랜드]!==undefined) kwData[item.브랜드]++;
       });
@@ -883,7 +930,7 @@ async function loadFeedFromSheets(){
     }
 
     const brandKwMap={};BRANDS.forEach(b=>brandKwMap[b]={});
-    items.forEach(item=>{
+    items_.forEach(item=>{
       const b=item.브랜드;if(!brandKwMap[b])return;
       const words=(item.제목+' '+item.내용요약)
         .replace(/[^\w가-힣\s]/g,' ')
@@ -914,7 +961,7 @@ async function loadFeedFromSheets(){
     const PER_BRAND = Math.ceil(24 / BRANDS.length);  // 브랜드당 최대 6개
     const brandPool = {};
     BRANDS.forEach(b => {
-      brandPool[b] = items
+      brandPool[b] = items_
         .filter(i => i.브랜드 === b)
         .sort((a,b) => b.작성일.localeCompare(a.작성일))
         .slice(0, PER_BRAND);
@@ -947,7 +994,7 @@ async function loadFeedFromSheets(){
       grid.appendChild(card);
     });
     applyFeedFilter();
-    console.log(`✅ Sheets에서 ${items.length}개 로드 완료`);
+    console.log(`✅ Sheets에서 ${items_.length}개 로드 완료`);
 
   } catch(e){
     console.error('Sheets 로드 오류:', e);
