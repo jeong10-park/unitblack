@@ -197,9 +197,9 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <button class="live-btn active" id="liveBtn" onclick="toggleLive()">
       <span class="live-dot" id="liveDot"></span>LIVE
     </button>
-    <input type="date" class="date-input" id="dateFrom">
+    <input type="date" class="date-input" id="dateFrom" min="2026-03-01">
     <span class="date-sep">~</span>
-    <input type="date" class="date-input" id="dateTo">
+    <input type="date" class="date-input" id="dateTo" min="2026-03-01">
     <button class="date-apply-btn" onclick="applyDateRange()">기간 조회</button>
     <span class="period-badge" id="periodBadge"></span>
     <span class="last-update" id="updateTime"></span>
@@ -340,7 +340,11 @@ const SENT = {
   neu: { 쿠팡이츠: 0, 배달의민족: 0, 땡겨요: 0, 요기요: 0 },
 };
 
-// 주차별 데이터 — 오늘 기준 동적 계산
+// ── 데이터 집계 기준일 (2026-03-01 이후만 집계) ──────
+/* DATA_FROM: 집계 시작일. 이 날짜 이전 데이터는 SOV/피드/시계열 모두 제외 */
+const DATA_FROM = '2026-03-01';
+
+// 주차별 데이터 — DATA_FROM 기준 주 월요일부터 오늘까지
 function getMonday(d){
   const day=d.getDay();
   const diff=d.getDate()-(day===0?6:day-1);
@@ -350,12 +354,11 @@ function getMonday(d){
 function fmt(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+const startMonday=getMonday(new Date(DATA_FROM));
 const thisMonday=getMonday(new Date());
 const WEEKLY_DATES=[];
-for(let i=11;i>=0;i--){
-  const d=new Date(thisMonday);
-  d.setDate(thisMonday.getDate()-i*7);
-  WEEKLY_DATES.push(fmt(d));
+for(let d=new Date(startMonday);d<=thisMonday;d.setDate(d.getDate()+7)){
+  WEEKLY_DATES.push(fmt(new Date(d)));
 }
 const TOTAL=WEEKLY_DATES.length;
 const WEEKLY_LABELS=WEEKLY_DATES.map((_,i)=>{
@@ -363,10 +366,10 @@ const WEEKLY_LABELS=WEEKLY_DATES.map((_,i)=>{
   return diff===0?'W':`W-${diff}`;
 });
 const WEEKLY_SOV={
-  쿠팡이츠:    Array(12).fill(0),
-  배달의민족:  Array(12).fill(0),
-  땡겨요:      Array(12).fill(0),
-  요기요:      Array(12).fill(0),
+  쿠팡이츠:    Array(TOTAL).fill(0),
+  배달의민족:  Array(TOTAL).fill(0),
+  땡겨요:      Array(TOTAL).fill(0),
+  요기요:      Array(TOTAL).fill(0),
 };
 
 let activeBrands=new Set(BRANDS);
@@ -419,6 +422,7 @@ function applyDateRange(){
   const t=document.getElementById('dateTo').value;
   if(!f||!t){alert('시작일과 종료일을 모두 입력해주세요.');return;}
   if(f>t){alert('시작일이 종료일보다 늦을 수 없어요.');return;}
+  if(f<DATA_FROM){alert('2026-03-01 이전은 조회할 수 없어요.');document.getElementById('dateFrom').value=DATA_FROM;return;}
   if(isLive)toggleLive();
   const si=dateToWeekIdx(f);
   const ei=dateToWeekIdx(t);
@@ -704,7 +708,12 @@ async function loadFeedFromSheets(){
         원문URL:  c[7]?.v||'',
         댓글수:   c[8]?.v||'',
       };
-    }).filter(i=>i.제목);
+    }).filter(i=>{
+      if(!i.제목) return false;
+      // DATA_FROM(2026-03-01) 이전 데이터는 집계 제외
+      if(i.작성일 && i.작성일 < DATA_FROM) return false;
+      return true;
+    });
 
     // ── 멀티브랜드 언급 제거 ──────────────────────────
     // 제목+요약에 서로 다른 브랜드가 2개 이상 등장하면 제외
