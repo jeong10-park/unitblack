@@ -904,9 +904,19 @@ async function loadFeedFromSheets(){
     filteredItems.forEach(item=>{
       const b=item.브랜드;if(!brandKwMap[b])return;
       const words=(item.제목+' '+item.내용요약)
+        .replace(/https?:\/\/\S+/gi,' ')    // URL 제거
         .replace(/[^\w가-힣\s]/g,' ').split(/\s+/)
         .map(w=>stripJosa(w.trim()))
-        .filter(w=>w.length>=2&&!stopWords.has(w)&&!/^\d+$/.test(w)&&!BRANDS.some(br=>w.includes(br)));
+        .filter(w=>
+          w.length>=2 &&
+          !stopWords.has(w) &&
+          !/^\d+$/.test(w) &&              // 순수 숫자 제거
+          !/\d+원$/.test(w) &&             // 000원, 1000원 등 제거
+          !/^\d/.test(w) &&                // 숫자로 시작하는 단어 제거
+          !/^https?/i.test(w) &&           // http/https 잔재 제거
+          !/^www/i.test(w) &&              // www 잔재 제거
+          !BRANDS.some(br=>w.includes(br)) // 브랜드명 포함 단어 제거
+        );
       words.forEach(w=>{brandKwMap[b][w]=(brandKwMap[b][w]||0)+1;});
     });
     const kwListEl=document.getElementById('brandKwList');
