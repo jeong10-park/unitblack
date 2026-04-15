@@ -353,8 +353,10 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 // ════════════════════════════════════════════════════
 const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/16-bSdM0OqMTIKDUCWdoxndkqqkPf33NTf_TR0JLPlsY/gviz/tq?tqx=out:json&gid=0&range=A1:I100000';
 
-// 집계 시작일 (config.py의 COLLECT_FROM과 맞춰주세요)
-const DATA_FROM = '2025-01-01';
+// 집계 범위: 2024-01-01 ~ 2025-12-31 (전년도 비교용)
+// ※ config.py의 COLLECT_FROM도 '2024-01-01'로 맞춰주세요
+const DATA_FROM = '2024-01-01';
+const DATA_TO   = '2025-12-31';
 
 // ── 채널 색상 ─────────────────────────────────────
 const CH_COLOR = { '뉴스':'#5b9cf6', '블로그':'#ff8c55', '카페':'#b07ef8', '웹문서':'#66c7b4' };
@@ -422,10 +424,12 @@ function applyDateRange(){
 
 // ── 채널 정규화 ────────────────────────────────────
 function normalizeChannel(ch){
-  ch = (ch||'').trim();
-  if(ch.includes('뉴스')) return '뉴스';
-  if(ch.includes('블로그')||ch.includes('blog')) return '블로그';
-  if(ch.includes('카페')||ch.includes('cafe')) return '카페';
+  // 실제 수집값: 네이버 news/blog/cafearticle/webkr, 카카오 news/blog/cafe/web
+  const s = (ch||'').toLowerCase();
+  if(s.includes('news')||s.includes('뉴스')) return '뉴스';
+  if(s.includes('blog')||s.includes('블로그')) return '블로그';
+  if(s.includes('cafe')||s.includes('cafearticle')||s.includes('care')||s.includes('카페')) return '카페';
+  if(s.includes('webkr')||s.includes('web')||s.includes('웹')) return '웹문서';
   return '웹문서';
 }
 
@@ -759,48 +763,45 @@ function renderAll(items){
 // ════════════════════════════════════════════════════
 async function loadFromSheets(){
   if(!SHEETS_URL || SHEETS_URL==='YOUR_GOOGLE_SHEETS_GVIZ_URL'){
-    console.warn('SHEETS_URL이 설정되지 않았습니다.');
+    console.warn('SHEETS_URL이 설정되지 않았습니다. 빈 데이터로 렌더합니다.');
     renderAll([]);
+    document.getElementById('feedBody').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);font-family:\'DM Mono\',monospace">⚙️ index.html 상단의 SHEETS_URL을 Google Sheets gviz URL로 교체해주세요.</td></tr>';
     return;
   }
 
   try {
     const res = await fetch(SHEETS_URL);
     const text = await res.text();
-    // gviz JSON 파싱
     const json = JSON.parse(text.replace(/^[^(]+\(/,'').replace(/\);?\s*$/,''));
-    const rows = json.table.rows;
+    const cols = json.table.cols.map(c=>c.label);
+    const rows = (json.table.rows||[]).map(r=>{
+      const o={};
+      (r.c||[]).forEach((cell,i)=>{ o[cols[i]] = cell?(cell.v||cell.f||''):''; });
+      return o;
+    });
 
-    if (!rows || rows.length === 0) {
-      console.warn('데이터가 비어있습니다.');
-      renderAll([]);
-      return;
-    }
+    // 컬럼명 정규화 (A~I 순서 기반 fallback)
+    allItems = rows
+      .map(r=>({
+        수집일시: r['수집일시']||r[cols[0]]||'',
+        작성일:   (r['작성일']||r[cols[1]]||'').toString().substring(0,10),
+        채널:     r['채널']||r[cols[2]]||'',
+        브랜드:   r['브랜드']||r[cols[3]]||'한화',
+        제목:     r['제목']||r[cols[4]]||'',
+        내용요약: r['내용요약']||r[cols[5]]||'',
+        감성:     r['감성']||r[cols[6]]||'중립',
+        원문URL:  r['원문URL']||r[cols[7]]||'',
+        댓글수:   r['댓글수']||r[cols[8]]||'',
+      }))
+      .filter(i => i.작성일 && i.작성일 >= DATA_FROM && i.작성일 <= DATA_TO);
 
-    // 컬럼 순서 기반 매핑 (A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8)
-    allItems = rows.map(r => {
-      const c = r.c;
-      return {
-        수집일시: c[0] ? (c[0].v || c[0].f || '') : '',
-        작성일:   c[1] ? String(c[1].v || c[1].f || '').substring(0, 10) : '',
-        채널:     c[2] ? (c[2].v || c[2].f || '') : '',
-        브랜드:   c[3] ? (c[3].v || c[3].f || '') : '',
-        제목:     c[4] ? (c[4].v || c[4].f || '') : '',
-        내용요약: c[5] ? (c[5].v || c[5].f || '') : '',
-        감성:     c[6] ? (c[6].v || c[6].f || '') : '중립',
-        원문URL:  c[7] ? (c[7].v || c[7].f || '') : '',
-        댓글수:   c[8] ? (c[8].v || c[8].f || 0) : 0
-      };
-    })
-    // 헤더 행 제외 및 날짜 필터링
-    .filter(i => i.작성일 !== '작성일' && i.작성일 >= DATA_FROM);
-
-    console.log(`📊 로드 완료: 총 ${allItems.length}건`);
+    console.log(`📊 로드 완료: 총 ${allItems.length}건 (${DATA_FROM} ~ ${DATA_TO})`);
     renderAll(allItems);
 
   } catch(e){
     console.error('Sheets 로드 오류:', e);
-    document.getElementById('feedBody').innerHTML = 
+    document.getElementById('feedBody').innerHTML =
       '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3)">⚠️ 데이터 로드 실패. 스프레드시트 공개 설정 및 URL을 확인해주세요.</td></tr>';
     renderAll([]);
   }
