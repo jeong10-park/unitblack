@@ -758,7 +758,7 @@ function renderAll(items){
 // 컬럼 순서: A=수집일시 B=작성일 C=채널 D=브랜드 E=제목 F=내용요약 G=감성 H=원문URL I=댓글수
 // ════════════════════════════════════════════════════
 async function loadFromSheets(){
-  if(!SHEETS_URL || SHEETS_URL==='YOUR_GOOGLE_SHEETS_GVIZ_URL'){
+  if(!SHEETS_URL || SHEETS_URL==='https://docs.google.com/spreadsheets/d/16-bSdM0OqMTIKDUCWdoxndkqqkPf33NTf_TR0JLPlsY/edit?usp=sharing'){
     console.warn('SHEETS_URL이 설정되지 않았습니다. 빈 데이터로 렌더합니다.');
     renderAll([]);
     document.getElementById('feedBody').innerHTML =
