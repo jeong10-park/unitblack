@@ -54,9 +54,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .fest-during{background:rgba(255,107,43,0.15);border:1px solid rgba(255,107,43,0.5);color:var(--accent2)}
 .fest-after{background:rgba(91,156,246,0.1);border:1px solid rgba(91,156,246,0.3);color:#7aabf8}
 .fest-sep{color:var(--text3);font-size:12px}
-.baseball-toggle{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid rgba(255,82,82,0.35);background:transparent;color:#ff8080;cursor:pointer;transition:all .15s;font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;gap:6px}
-.baseball-toggle.off{background:rgba(255,82,82,0.12);border-color:rgba(255,82,82,0.6);color:#ff5252}
-.baseball-toggle .bb-dot{width:6px;height:6px;border-radius:50%;background:#ff5252;flex-shrink:0}
+
 
 /* ── KPI 카드 ── */
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:36px}
@@ -201,33 +199,26 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <span class="fest-zone fest-during">9월 축제 피크</span>
     <span class="fest-sep">→</span>
     <span class="fest-zone fest-after">10–11월 잔향</span>
-    <span style="color:var(--text3);font-size:12px;margin-left:8px">|</span>
-    <button class="baseball-toggle" id="baseballToggle" onclick="toggleBaseball(this)" title="야구 관련 버즈 포함/제외">
-      <span class="bb-dot"></span>야구 버즈 포함 중
-    </button>
+
   </div>
 
   <!-- KPI -->
   <div class="kpi-row">
     <div class="kpi">
-      <div class="kpi-label">총 누적 버즈</div>
+      <div class="kpi-label">한화불꽃 총 버즈</div>
       <div class="kpi-value" id="kpiTotal">—</div>
-      <div class="kpi-delta" id="kpiTotalDelta"></div>
     </div>
     <div class="kpi">
       <div class="kpi-label">9월 피크 버즈</div>
       <div class="kpi-value" id="kpiPeak">—</div>
-      <div class="kpi-delta" id="kpiPeakDelta"></div>
     </div>
     <div class="kpi">
       <div class="kpi-label">긍정 감성 비율</div>
       <div class="kpi-value" id="kpiPos">—</div>
-      <div class="kpi-delta" id="kpiPosDelta"></div>
     </div>
     <div class="kpi">
       <div class="kpi-label">부정 감성 비율</div>
       <div class="kpi-value" id="kpiNeg">—</div>
-      <div class="kpi-delta" id="kpiNegDelta"></div>
     </div>
   </div>
 
@@ -236,8 +227,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <div class="section-label">📈 월별 버즈량 추이 <span class="idx">01</span></div>
     <div class="buzz-card">
       <div class="buzz-legend">
-        <div class="buzz-leg"><div class="buzz-swatch" style="background:var(--accent)"></div>2025 버즈량</div>
-        <div class="buzz-leg"><div class="buzz-swatch" style="background:rgba(80,80,120,0.6);border:1px dashed #666"></div>2024 버즈량</div>
+        <div class="buzz-leg"><div class="buzz-swatch" style="background:var(--accent)"></div>한화불꽃 버즈량 (2025)</div>
         <div class="buzz-leg"><div class="buzz-swatch" style="background:rgba(255,107,43,0.2);border:1px solid rgba(255,107,43,0.4)"></div>축제 시즌 구간 (9월)</div>
       </div>
       <div class="buzz-wrap">
@@ -301,6 +291,17 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
       <div class="sov-legend" id="sovLegend"></div>
       <div class="sov-wrap">
         <canvas id="sovChart" role="img" aria-label="2025년 월별 5대 기업 버즈 점유율 100% 누적 영역 차트"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04-2 주요 기업 버즈 건수 -->
+  <div class="sov-section">
+    <div class="section-label">📊 주요 기업 버즈 건수 <span class="idx">04-2</span></div>
+    <div class="sov-card">
+      <div class="sov-legend" id="buzzCountLegend"></div>
+      <div class="sov-wrap">
+        <canvas id="buzzCountChart" role="img" aria-label="2025년 월별 주요 기업 버즈 건수 그룹 바차트"></canvas>
       </div>
     </div>
   </div>
@@ -375,13 +376,15 @@ const STOP = new Set([
 ]);
 
 // ── SOV 브랜드 컬러 ────────────────────────────────
-const SOV_BRANDS  = ['한화','삼성','SK','현대','LG'];
+// 한화불꽃(진주황) + 한화(연주황) 인접 배치 → 합산이 전체 한화 연관 버즈
+const SOV_BRANDS  = ['한화불꽃','한화','삼성','SK','현대','LG'];
 const SOV_COLORS  = {
-  '한화': '#ff6b2b',
-  '삼성': '#1428a0',
-  'SK':   '#ea0029',
-  '현대': '#002c5f',
-  'LG':   '#a50034',
+  '한화불꽃': '#ff6b2b',   // 진주황 — 불꽃 직접 연관
+  '한화':     '#ffaa77',   // 연주황 — 한화 일반 언급
+  '삼성':     '#1428a0',
+  'SK':       '#ea0029',
+  '현대':     '#002c5f',
+  'LG':       '#a50034',
 };
 
 // 시간 표시
@@ -396,34 +399,16 @@ updateTime(); setInterval(updateTime,60000);
 let activeRange = null;
 let isLive = true;
 let allItems = [];
-let excludeBaseball = false;  // 야구 버즈 제외 여부
-
 // 필터 적용된 아이템 반환
-// - "제외" 태깅된 무관 버즈는 항상 제거
-// - 야구 토글 ON 시 "야구" 태깅도 제거
+// 제외/멀티/기타/야구 항상 제거
 function getFilteredItems(){
   return allItems.filter(i => {
-    if(i.브랜드 === '제외') return false;   // 무관 지역행사 등 항상 제외
-    if(i.브랜드 === '멀티') return false;   // 멀티브랜드 항상 제외
-    if(i.브랜드 === '기타') return false;   // 미분류 항상 제외
-    if(excludeBaseball && i.브랜드 === '야구') return false;
+    if(i.브랜드 === '제외') return false;
+    if(i.브랜드 === '멀티') return false;
+    if(i.브랜드 === '기타') return false;
+    if(i.브랜드 === '야구') return false;
     return true;
   });
-}
-
-function toggleBaseball(btn){
-  excludeBaseball = !excludeBaseball;
-  if(excludeBaseball){
-    btn.classList.add('off');
-    btn.innerHTML = '<span class="bb-dot"></span>야구 버즈 제외 중';
-  } else {
-    btn.classList.remove('off');
-    btn.innerHTML = '<span class="bb-dot"></span>야구 버즈 포함 중';
-  }
-  const items = activeRange
-    ? getFilteredItems().filter(i => i.작성일 >= activeRange[0] && i.작성일 <= activeRange[1])
-    : getFilteredItems();
-  renderAll(items);
 }
 
 function toggleLive(){
@@ -489,6 +474,7 @@ function aggregateByMonth(items){
 // ── 채널 집계 ──────────────────────────────────────
 // ── 04 SOV 차트 ───────────────────────────────────
 let sovChartInst = null;
+let monthlyData = {};  // afterBody 클로저에서 접근
 function renderSOVChart(items){
   const months = Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0'));
   const labels = months.map(m => m+'월');
@@ -497,7 +483,7 @@ function renderSOVChart(items){
   const items2025 = items.filter(i => i.작성일 && i.작성일.startsWith('2025'));
 
   // 월별 브랜드별 버즈 집계
-  const monthlyData = {};
+  monthlyData = {};
   SOV_BRANDS.forEach(b => { monthlyData[b] = months.map(m => 0); });
   items2025.forEach(item => {
     const mo = item.작성일.substring(5,7);
@@ -516,12 +502,17 @@ function renderSOVChart(items){
     });
   });
 
-  // 범례
+  // 범례 — 한화불꽃+한화 합계 뱃지 포함
   const legEl = document.getElementById('sovLegend');
-  legEl.innerHTML = SOV_BRANDS.map(b => `
-    <div class="sov-leg">
+  legEl.innerHTML = SOV_BRANDS.map(b => {
+    const isHw = b === '한화불꽃' || b === '한화';
+    return `<div class="sov-leg" style="${isHw?'font-weight:500':''}">
       <div class="sov-swatch" style="background:${SOV_COLORS[b]}"></div>${b}
-    </div>`).join('');
+    </div>`;
+  }).join('') +
+  `<div class="sov-leg" style="margin-left:4px;padding-left:10px;border-left:1px solid rgba(255,255,255,0.1);color:#ffaa77;font-size:11px">
+    ※ 주황 합산 = 한화 전체
+  </div>`;
 
   if(sovChartInst) sovChartInst.destroy();
   sovChartInst = new Chart(document.getElementById('sovChart'), {
@@ -545,7 +536,16 @@ function renderSOVChart(items){
           backgroundColor: '#1a1a2e', titleColor: '#ccc', bodyColor: '#aaa',
           borderColor: '#2a2a3e', borderWidth: 1,
           callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}%`
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}%`,
+            afterBody: (ctxArr) => {
+              const mo = ctxArr[0].dataIndex;
+              const hw = (monthlyData['한화불꽃']||[])[mo] || 0;
+              const h  = (monthlyData['한화']||[])[mo] || 0;
+              const tot = SOV_BRANDS.reduce((s,b)=>(s+(monthlyData[b]||[])[mo]||0),0)||1;
+              const sum = hw + h;
+              const pct = Math.round(sum/tot*100);
+              return sum > 0 ? [`  ─────────────`, `  한화 합계: ${pct}% (${sum}건)`] : [];
+            }
           }
         }
       },
@@ -559,6 +559,82 @@ function renderSOVChart(items){
           stacked: true, max: 100,
           grid: { color: 'rgba(255,255,255,0.04)' },
           ticks: { color: '#666', font: { size: 11 }, callback: v => v + '%' }
+        }
+      }
+    }
+  });
+}
+
+// ── 04-2 주요 기업 버즈 건수 차트 ───────────────────
+let buzzCountChartInst = null;
+function renderBuzzCountChart(items){
+  const months = Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0'));
+  const labels = months.map(m => m+'월');
+  const items2025 = items.filter(i => i.작성일 && i.작성일.startsWith('2025'));
+
+  // 월별 브랜드별 건수 집계
+  const countData = {};
+  SOV_BRANDS.forEach(b => { countData[b] = months.map(() => 0); });
+  items2025.forEach(item => {
+    const mo = (item.작성일||'').substring(5,7);
+    const idx = parseInt(mo) - 1;
+    if(idx < 0 || idx > 11) return;
+    if(SOV_BRANDS.includes(item.브랜드)) countData[item.브랜드][idx]++;
+  });
+
+  // 범례
+  const legEl = document.getElementById('buzzCountLegend');
+  legEl.innerHTML = SOV_BRANDS.map(b => {
+    const isHw = b === '한화불꽃' || b === '한화';
+    return `<div class="sov-leg" style="${isHw?'font-weight:500':''}">
+      <div class="sov-swatch" style="background:${SOV_COLORS[b]}${isHw?'':';opacity:0.85'}"></div>${b}
+    </div>`;
+  }).join('') +
+  `<div class="sov-leg" style="margin-left:4px;padding-left:10px;border-left:1px solid rgba(255,255,255,0.1);color:#ffaa77;font-size:11px">
+    ※ 주황 합산 = 한화 전체
+  </div>`;
+
+  if(buzzCountChartInst) buzzCountChartInst.destroy();
+  buzzCountChartInst = new Chart(document.getElementById('buzzCountChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: SOV_BRANDS.map(b => ({
+        label: b,
+        data: countData[b],
+        backgroundColor: SOV_COLORS[b] + (b==='한화'?'bb':'dd'),
+        borderRadius: b==='한화불꽃'?3:0,
+        borderSkipped: false,
+        stack: (b==='한화불꽃'||b==='한화') ? 'hanwha' : b,
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a1a2e', titleColor: '#ccc', bodyColor: '#aaa',
+          borderColor: '#2a2a3e', borderWidth: 1,
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()}건`,
+            afterBody: (ctxArr) => {
+              const mo = ctxArr[0].dataIndex;
+              const hw = (countData['한화불꽃']||[])[mo] || 0;
+              const h  = (countData['한화']||[])[mo] || 0;
+              const sum = hw + h;
+              return sum > 0 ? ['  ─────────────', `  한화 합계: ${sum.toLocaleString()}건`] : [];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.03)' },
+          ticks: { color: '#666', font: { size: 11 } }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#666', font: { size: 11 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v }
         }
       }
     }
@@ -588,8 +664,9 @@ let buzzChartInst = null;
 function renderBuzzChart(items){
   const months = Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0'));
   const labels = months.map(m => m+'월');
-  const y2024 = months.map(m => items.filter(i=>i.작성일&&i.작성일.startsWith('2024-'+m)).length);
-  const y2025 = months.map(m => items.filter(i=>i.작성일&&i.작성일.startsWith('2025-'+m)).length);
+  // 한화불꽃 기준 2025년 단독
+  const hw = items.filter(i => i.브랜드 === '한화불꽃');
+  const y2025 = months.map(m => hw.filter(i=>i.작성일&&i.작성일.startsWith('2025-'+m)).length);
 
   // 9월 강조 색
   const bg2025 = months.map((_,i)=> i===8 ? '#ff6b2b' : 'rgba(255,107,43,0.55)');
@@ -622,8 +699,7 @@ function renderBuzzChart(items){
     data:{
       labels,
       datasets:[
-        { label:'2025', data:y2025, backgroundColor:bg2025, borderRadius:3, borderSkipped:false, order:1 },
-        { label:'2024', data:y2024, backgroundColor:'rgba(70,70,110,0.35)', borderColor:'rgba(100,100,150,0.45)', borderWidth:1, borderRadius:3, borderSkipped:false, order:2 }
+        { label:'한화불꽃 2025', data:y2025, backgroundColor:bg2025, borderRadius:3, borderSkipped:false }
       ]
     },
     options:{
@@ -646,7 +722,9 @@ function renderBuzzChart(items){
 // ── 02 감성 스택 차트 ──────────────────────────────
 let sentChartInst = null;
 function renderSentChart(items){
-  const { buzz, sent } = aggregateByMonth(items);
+  // 감성 차트는 한화불꽃 기준
+  const hw = items.filter(i => i.브랜드 === '한화불꽃');
+  const { buzz, sent } = aggregateByMonth(hw);
   const sortedKeys = Object.keys(sent).sort();
   const recent = sortedKeys.slice(-18);
   const labels = recent.map(k => {
@@ -684,13 +762,16 @@ function renderSentChart(items){
 
 // ── 02 감성 도넛 ───────────────────────────────────
 function renderSentDonut(items){
+  // 도넛도 한화불꽃 기준
+  const hw = items.filter(i => i.브랜드 === '한화불꽃');
   let pos=0,neu=0,neg=0;
-  items.forEach(i=>{
+  hw.forEach(i=>{
     if(i.감성==='긍정') pos++;
     else if(i.감성==='부정') neg++;
     else neu++;
   });
   const total = pos+neu+neg||1;
+  // total은 hw 기준
 
   // SVG 도넛
   const r=38,C=2*Math.PI*r;
@@ -724,9 +805,11 @@ function renderSentDonut(items){
 
 // ── 03 키워드 렌더 ─────────────────────────────────
 function renderKeywords(items){
-  const before = extractKeywords(items, 7, 8);
-  const during = extractKeywords(items, 9, 9);
-  const after  = extractKeywords(items, 10, 11);
+  // 키워드도 한화불꽃 기준
+  const hw = items.filter(i => i.브랜드 === '한화불꽃');
+  const before = extractKeywords(hw, 7, 8);
+  const during = extractKeywords(hw, 9, 9);
+  const after  = extractKeywords(hw, 10, 11);
 
   function kwHtml(data, color){
     if(!data.length) return '<div style="font-size:12px;color:var(--text3);padding:8px 0">데이터 없음</div>';
@@ -750,43 +833,20 @@ function renderKeywords(items){
 // ── 04 채널 바 ─────────────────────────────────────
 
 
-// ── KPI ────────────────────────────────────────────
+// ── KPI — 한화불꽃 기준, YoY 없음 ────────────────────
 function renderKPIs(items){
-  const total = items.length;
-  const yr2024 = items.filter(i=>i.작성일&&i.작성일.startsWith('2024'));
-  const yr2025 = items.filter(i=>i.작성일&&i.작성일.startsWith('2025'));
-  const yoy = yr2024.length>0 ? Math.round((yr2025.length-yr2024.length)/yr2024.length*100) : 0;
-
-  const sep2025 = items.filter(i=>i.작성일&&i.작성일.startsWith('2025')&&i.작성일.substring(5,7)==='09').length;
-  const sep2024 = items.filter(i=>i.작성일&&i.작성일.startsWith('2024')&&i.작성일.substring(5,7)==='09').length;
-  const sepYoy = sep2024>0 ? Math.round((sep2025-sep2024)/sep2024*100) : 0;
-
-  const pos = items.filter(i=>i.감성==='긍정').length;
-  const neg = items.filter(i=>i.감성==='부정').length;
-  const posPct = total>0 ? Math.round(pos/total*100) : 0;
-  const negPct = total>0 ? Math.round(neg/total*100) : 0;
-
-  const pos24 = yr2024.filter(i=>i.감성==='긍정').length;
-  const posPct24 = yr2024.length>0 ? Math.round(pos24/yr2024.length*100) : 0;
-  const posDelta = posPct - posPct24;
+  const hw = items.filter(i => i.브랜드 === '한화불꽃');
+  const total = hw.length;
+  const sep   = hw.filter(i => (i.작성일||'').substring(5,7) === '09').length;
+  const pos   = hw.filter(i => i.감성 === '긍정').length;
+  const neg   = hw.filter(i => i.감성 === '부정').length;
+  const posPct = total > 0 ? Math.round(pos / total * 100) : 0;
+  const negPct = total > 0 ? Math.round(neg / total * 100) : 0;
 
   document.getElementById('kpiTotal').textContent = total.toLocaleString();
-  document.getElementById('kpiTotalDelta').innerHTML = yoy>=0
-    ? `<span class="delta-up">↑ ${Math.abs(yoy)}% YoY</span>`
-    : `<span class="delta-dn">↓ ${Math.abs(yoy)}% YoY</span>`;
-
-  document.getElementById('kpiPeak').textContent = sep2025.toLocaleString();
-  document.getElementById('kpiPeakDelta').innerHTML = sepYoy>=0
-    ? `<span class="delta-up">↑ ${Math.abs(sepYoy)}% vs 2024</span>`
-    : `<span class="delta-dn">↓ ${Math.abs(sepYoy)}% vs 2024</span>`;
-
-  document.getElementById('kpiPos').textContent = posPct+'%';
-  document.getElementById('kpiPosDelta').innerHTML = posDelta>=0
-    ? `<span class="delta-up">↑ ${Math.abs(posDelta)}%p YoY</span>`
-    : `<span class="delta-dn">↓ ${Math.abs(posDelta)}%p YoY</span>`;
-
-  document.getElementById('kpiNeg').textContent = negPct+'%';
-  document.getElementById('kpiNegDelta').innerHTML = `<span class="delta-flat">전기 대비</span>`;
+  document.getElementById('kpiPeak').textContent  = sep.toLocaleString();
+  document.getElementById('kpiPos').textContent   = posPct + '%';
+  document.getElementById('kpiNeg').textContent   = negPct + '%';
 }
 
 // ── 05 피드 ────────────────────────────────────────
@@ -840,6 +900,7 @@ function renderAll(items){
   renderSentDonut(items);
   renderKeywords(items);
   renderSOVChart(items);
+  renderBuzzCountChart(items);
   renderFeed([...items].sort((a,b)=>(b.작성일||'').localeCompare(a.작성일||'')));
   console.log(`✅ 렌더 완료: ${items.length}건`);
 }
