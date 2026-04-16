@@ -311,16 +311,29 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <!-- 05 이슈 피드 -->
   <div class="feed-section">
     <div class="section-label">📋 전체 이슈 피드 <span class="idx">05</span></div>
-    <div class="feed-filter">
-      <button class="filter-btn active" onclick="filterFeed('all',this)">전체</button>
-      <button class="filter-btn" onclick="filterFeed('pos',this)">긍정</button>
-      <button class="filter-btn" onclick="filterFeed('neg',this)">부정</button>
-      <button class="filter-btn" onclick="filterFeed('neu',this)">중립</button>
-      <button class="filter-btn" onclick="filterFeed('news',this)">뉴스</button>
-      <button class="filter-btn" onclick="filterFeed('blog',this)">블로그</button>
-      <button class="filter-btn" onclick="filterFeed('cafe',this)">카페</button>
-      <button class="filter-btn" onclick="filterFeed('web',this)">웹문서</button>
-      <button class="filter-btn" onclick="filterFeed('sep',this)">9월만</button>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+      <div class="feed-filter" id="feedBrandFilter">
+        <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;padding:5px 4px;white-space:nowrap;align-self:center">브랜드</span>
+        <button class="filter-btn active" onclick="filterFeed('all',this,'brand')">전체</button>
+        <button class="filter-btn" style="border-color:rgba(255,107,43,0.4);color:#ff9466" onclick="filterFeed('한화불꽃',this,'brand')">한화불꽃</button>
+        <button class="filter-btn" style="border-color:rgba(255,170,119,0.4);color:#ffaa77" onclick="filterFeed('한화',this,'brand')">한화</button>
+        <button class="filter-btn" onclick="filterFeed('삼성',this,'brand')">삼성</button>
+        <button class="filter-btn" onclick="filterFeed('SK',this,'brand')">SK</button>
+        <button class="filter-btn" onclick="filterFeed('현대',this,'brand')">현대</button>
+        <button class="filter-btn" onclick="filterFeed('LG',this,'brand')">LG</button>
+      </div>
+      <div class="feed-filter" id="feedSubFilter">
+        <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;padding:5px 4px;white-space:nowrap;align-self:center">필터</span>
+        <button class="filter-btn active" onclick="filterFeed('all',this,'sub')">전체</button>
+        <button class="filter-btn" onclick="filterFeed('pos',this,'sub')">긍정</button>
+        <button class="filter-btn" onclick="filterFeed('neg',this,'sub')">부정</button>
+        <button class="filter-btn" onclick="filterFeed('neu',this,'sub')">중립</button>
+        <button class="filter-btn" onclick="filterFeed('news',this,'sub')">뉴스</button>
+        <button class="filter-btn" onclick="filterFeed('blog',this,'sub')">블로그</button>
+        <button class="filter-btn" onclick="filterFeed('cafe',this,'sub')">카페</button>
+        <button class="filter-btn" onclick="filterFeed('web',this,'sub')">웹문서</button>
+        <button class="filter-btn" onclick="filterFeed('sep',this,'sub')">9월만</button>
+      </div>
     </div>
     <div style="overflow-x:auto">
       <table class="feed-table" id="feedTable">
@@ -865,7 +878,7 @@ function renderFeed(items){
     const isSep = (item.작성일||'').substring(5,7)==='09';
     const urlHtml = item.원문URL&&item.원문URL!=='#'
       ? `<a class="feed-link" href="${item.원문URL}" target="_blank">원문 ↗</a>` : '';
-    return `<tr data-sent="${item.감성}" data-ch="${ch}" data-sep="${isSep}">
+    return `<tr data-sent="${item.감성}" data-ch="${ch}" data-sep="${isSep}" data-brand="${item.브랜드||''}">
       <td class="feed-date">${(item.작성일||'').substring(0,10)}</td>
       <td class="feed-ch-tag" style="color:${chColor}">${ch}</td>
       <td class="feed-title" title="${item.제목}">${item.제목}</td>
@@ -876,23 +889,46 @@ function renderFeed(items){
   }).join('');
 }
 
-function filterFeed(f, btn){
-  document.querySelectorAll('.feed-filter .filter-btn').forEach(b=>b.classList.remove('active'));
+// 활성 필터 상태
+let activeBrandFilter = 'all';
+let activeSubFilter   = 'all';
+
+function filterFeed(f, btn, group){
+  if(group === 'brand'){
+    activeBrandFilter = f;
+    document.querySelectorAll('#feedBrandFilter .filter-btn').forEach(b=>b.classList.remove('active'));
+  } else {
+    activeSubFilter = f;
+    document.querySelectorAll('#feedSubFilter .filter-btn').forEach(b=>b.classList.remove('active'));
+  }
   btn.classList.add('active');
+  applyFeedFilter();
+}
+
+function applyFeedFilter(){
   document.querySelectorAll('#feedBody tr').forEach(tr=>{
-    const sent = tr.dataset.sent||'';
-    const ch   = tr.dataset.ch||'';
-    const sep  = tr.dataset.sep==='true';
-    let show = true;
-    if(f==='pos') show = sent==='긍정';
-    else if(f==='neg') show = sent==='부정';
-    else if(f==='neu') show = sent==='중립';
-    else if(f==='news') show = ch==='뉴스';
-    else if(f==='blog') show = ch==='블로그';
-    else if(f==='cafe') show = ch==='카페';
-    else if(f==='web') show = ch==='웹문서';
-    else if(f==='sep') show = sep;
-    tr.classList.toggle('hidden', !show);
+    const sent  = tr.dataset.sent||'';
+    const ch    = tr.dataset.ch||'';
+    const sep   = tr.dataset.sep==='true';
+    const brand = tr.dataset.brand||'';
+
+    // 브랜드 필터
+    let showBrand = true;
+    if(activeBrandFilter !== 'all') showBrand = brand === activeBrandFilter;
+
+    // 서브 필터
+    let showSub = true;
+    const sf = activeSubFilter;
+    if(sf==='pos')  showSub = sent==='긍정';
+    else if(sf==='neg')  showSub = sent==='부정';
+    else if(sf==='neu')  showSub = sent==='중립';
+    else if(sf==='news') showSub = ch==='뉴스';
+    else if(sf==='blog') showSub = ch==='블로그';
+    else if(sf==='cafe') showSub = ch==='카페';
+    else if(sf==='web')  showSub = ch==='웹문서';
+    else if(sf==='sep')  showSub = sep;
+
+    tr.classList.toggle('hidden', !(showBrand && showSub));
   });
 }
 
