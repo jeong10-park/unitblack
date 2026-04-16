@@ -54,6 +54,9 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .fest-during{background:rgba(255,107,43,0.15);border:1px solid rgba(255,107,43,0.5);color:var(--accent2)}
 .fest-after{background:rgba(91,156,246,0.1);border:1px solid rgba(91,156,246,0.3);color:#7aabf8}
 .fest-sep{color:var(--text3);font-size:12px}
+.baseball-toggle{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid rgba(255,82,82,0.35);background:transparent;color:#ff8080;cursor:pointer;transition:all .15s;font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;gap:6px}
+.baseball-toggle.off{background:rgba(255,82,82,0.12);border-color:rgba(255,82,82,0.6);color:#ff5252}
+.baseball-toggle .bb-dot{width:6px;height:6px;border-radius:50%;background:#ff5252;flex-shrink:0}
 
 /* ── KPI 카드 ── */
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:36px}
@@ -101,17 +104,13 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .kw-bar-fill{height:4px;border-radius:2px}
 .kw-count{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;min-width:28px;text-align:right}
 
-/* ── 04 채널 ── */
-.ch-section{margin-bottom:44px}
-.ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.ch-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px}
-.ch-card-title{font-size:13px;color:var(--text2);margin-bottom:18px;font-weight:500}
-.ch-bar-item{margin-bottom:13px}
-.ch-bar-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
-.ch-bar-name{color:var(--text2)}
-.ch-bar-pct{font-family:'DM Mono',monospace;color:var(--text3)}
-.ch-track{background:rgba(255,255,255,0.05);border-radius:3px;height:7px}
-.ch-fill{height:7px;border-radius:3px;transition:width 1s ease}
+/* ── 04 SOV ── */
+.sov-section{margin-bottom:44px}
+.sov-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px}
+.sov-wrap{position:relative;height:260px}
+.sov-legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.sov-leg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.sov-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0}
 
 /* ── 05 피드 ── */
 .feed-section{margin-bottom:44px}
@@ -136,11 +135,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .footer{border-top:1px solid var(--border);padding:20px 32px;display:flex;justify-content:space-between;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;flex-wrap:wrap;gap:8px}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.kpi-row,.buzz-section,.sent-section,.kw-section,.ch-section,.feed-section{animation:fadeUp .45s ease both}
+.kpi-row,.buzz-section,.sent-section,.kw-section,.sov-section,.feed-section{animation:fadeUp .45s ease both}
 .kpi-row{animation-delay:.05s}.buzz-section{animation-delay:.1s}.sent-section{animation-delay:.15s}
-.kw-section{animation-delay:.2s}.ch-section{animation-delay:.22s}.feed-section{animation-delay:.25s}
+.kw-section{animation-delay:.2s}.sov-section{animation-delay:.22s}.feed-section{animation-delay:.25s}
 
-@media(max-width:1100px){.sent-row{grid-template-columns:1fr}.ch-grid{grid-template-columns:1fr}}
+@media(max-width:1100px){.sent-row{grid-template-columns:1fr}}
 @media(max-width:900px){
   .kpi-row{grid-template-columns:1fr 1fr}
   .kw-grid{grid-template-columns:1fr}
@@ -202,6 +201,10 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <span class="fest-zone fest-during">9월 축제 피크</span>
     <span class="fest-sep">→</span>
     <span class="fest-zone fest-after">10–11월 잔향</span>
+    <span style="color:var(--text3);font-size:12px;margin-left:8px">|</span>
+    <button class="baseball-toggle" id="baseballToggle" onclick="toggleBaseball(this)" title="야구 관련 버즈 포함/제외">
+      <span class="bb-dot"></span>야구 버즈 포함 중
+    </button>
   </div>
 
   <!-- KPI -->
@@ -291,17 +294,13 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     </div>
   </div>
 
-  <!-- 04 채널 분포 -->
-  <div class="ch-section">
-    <div class="section-label">📡 채널별 버즈 분포 <span class="idx">04</span></div>
-    <div class="ch-grid">
-      <div class="ch-card">
-        <div class="ch-card-title">전체 기간 채널 분포</div>
-        <div id="chBarsAll"></div>
-      </div>
-      <div class="ch-card">
-        <div class="ch-card-title">9월 축제 시즌 채널 분포</div>
-        <div id="chBarsSep"></div>
+  <!-- 04 주요 기업 버즈 점유율(SOV) -->
+  <div class="sov-section">
+    <div class="section-label">📊 주요 기업 버즈 점유율 (SOV) <span class="idx">04</span></div>
+    <div class="sov-card">
+      <div class="sov-legend" id="sovLegend"></div>
+      <div class="sov-wrap">
+        <canvas id="sovChart" role="img" aria-label="2025년 월별 5대 기업 버즈 점유율 100% 누적 영역 차트"></canvas>
       </div>
     </div>
   </div>
@@ -375,6 +374,16 @@ const STOP = new Set([
   '사람','관람','관람객','인파','장소','시간','오늘','올해','내년','작년',
 ]);
 
+// ── SOV 브랜드 컬러 ────────────────────────────────
+const SOV_BRANDS  = ['한화','삼성','SK','현대','LG'];
+const SOV_COLORS  = {
+  '한화': '#ff6b2b',
+  '삼성': '#1428a0',
+  'SK':   '#ea0029',
+  '현대': '#002c5f',
+  'LG':   '#a50034',
+};
+
 // 시간 표시
 function updateTime(){
   const n=new Date();
@@ -387,6 +396,35 @@ updateTime(); setInterval(updateTime,60000);
 let activeRange = null;
 let isLive = true;
 let allItems = [];
+let excludeBaseball = false;  // 야구 버즈 제외 여부
+
+// 필터 적용된 아이템 반환
+// - "제외" 태깅된 무관 버즈는 항상 제거
+// - 야구 토글 ON 시 "야구" 태깅도 제거
+function getFilteredItems(){
+  return allItems.filter(i => {
+    if(i.브랜드 === '제외') return false;   // 무관 지역행사 등 항상 제외
+    if(i.브랜드 === '멀티') return false;   // 멀티브랜드 항상 제외
+    if(i.브랜드 === '기타') return false;   // 미분류 항상 제외
+    if(excludeBaseball && i.브랜드 === '야구') return false;
+    return true;
+  });
+}
+
+function toggleBaseball(btn){
+  excludeBaseball = !excludeBaseball;
+  if(excludeBaseball){
+    btn.classList.add('off');
+    btn.innerHTML = '<span class="bb-dot"></span>야구 버즈 제외 중';
+  } else {
+    btn.classList.remove('off');
+    btn.innerHTML = '<span class="bb-dot"></span>야구 버즈 포함 중';
+  }
+  const items = activeRange
+    ? getFilteredItems().filter(i => i.작성일 >= activeRange[0] && i.작성일 <= activeRange[1])
+    : getFilteredItems();
+  renderAll(items);
+}
 
 function toggleLive(){
   isLive = !isLive;
@@ -399,7 +437,7 @@ function toggleLive(){
     document.getElementById('dateFrom').value = '';
     document.getElementById('dateTo').value = '';
     activeRange = null;
-    renderAll(allItems);
+    renderAll(getFilteredItems());
   } else {
     btn.classList.remove('active');
     dot.style.animation = 'none';
@@ -418,7 +456,7 @@ function applyDateRange(){
   badge.textContent = f + ' ~ ' + t;
   badge.classList.add('visible');
   document.getElementById('updateTime').textContent = '기간 조회 모드';
-  const filtered = allItems.filter(i => i.작성일 >= f && i.작성일 <= t);
+  const filtered = getFilteredItems().filter(i => i.작성일 >= f && i.작성일 <= t);
   renderAll(filtered);
 }
 
@@ -449,15 +487,82 @@ function aggregateByMonth(items){
 }
 
 // ── 채널 집계 ──────────────────────────────────────
-function aggregateChannels(items){
-  const all = {}, sep = {};
-  items.forEach(item => {
-    const ch = normalizeChannel(item.채널);
-    all[ch] = (all[ch]||0) + 1;
-    const mo = item.작성일?item.작성일.substring(5,7):'';
-    if(mo==='09') sep[ch] = (sep[ch]||0) + 1;
+// ── 04 SOV 차트 ───────────────────────────────────
+let sovChartInst = null;
+function renderSOVChart(items){
+  const months = Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0'));
+  const labels = months.map(m => m+'월');
+
+  // 2025년 데이터만 사용
+  const items2025 = items.filter(i => i.작성일 && i.작성일.startsWith('2025'));
+
+  // 월별 브랜드별 버즈 집계
+  const monthlyData = {};
+  SOV_BRANDS.forEach(b => { monthlyData[b] = months.map(m => 0); });
+  items2025.forEach(item => {
+    const mo = item.작성일.substring(5,7);
+    const idx = parseInt(mo) - 1;
+    const brand = item.브랜드;
+    if(SOV_BRANDS.includes(brand)) monthlyData[brand][idx]++;
   });
-  return { all, sep };
+
+  // 100% 누적 비율로 변환
+  const pctData = {};
+  SOV_BRANDS.forEach(b => { pctData[b] = []; });
+  months.forEach((_, idx) => {
+    const total = SOV_BRANDS.reduce((s, b) => s + monthlyData[b][idx], 0) || 1;
+    SOV_BRANDS.forEach(b => {
+      pctData[b].push(Math.round(monthlyData[b][idx] / total * 100));
+    });
+  });
+
+  // 범례
+  const legEl = document.getElementById('sovLegend');
+  legEl.innerHTML = SOV_BRANDS.map(b => `
+    <div class="sov-leg">
+      <div class="sov-swatch" style="background:${SOV_COLORS[b]}"></div>${b}
+    </div>`).join('');
+
+  if(sovChartInst) sovChartInst.destroy();
+  sovChartInst = new Chart(document.getElementById('sovChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: SOV_BRANDS.map(b => ({
+        label: b,
+        data: pctData[b],
+        backgroundColor: SOV_COLORS[b],
+        stack: 's',
+        borderRadius: 0,
+        borderSkipped: false,
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a1a2e', titleColor: '#ccc', bodyColor: '#aaa',
+          borderColor: '#2a2a3e', borderWidth: 1,
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}%`
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          grid: { color: 'rgba(255,255,255,0.03)' },
+          ticks: { color: '#666', font: { size: 11 } }
+        },
+        y: {
+          stacked: true, max: 100,
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#666', font: { size: 11 }, callback: v => v + '%' }
+        }
+      }
+    }
+  });
 }
 
 // ── 키워드 추출 ────────────────────────────────────
@@ -643,23 +748,7 @@ function renderKeywords(items){
 }
 
 // ── 04 채널 바 ─────────────────────────────────────
-function renderChannelBars(data, elId){
-  const el = document.getElementById(elId);
-  const total = Object.values(data).reduce((a,b)=>a+b,0)||1;
-  const sorted = Object.entries(data).sort((a,b)=>b[1]-a[1]);
-  if(!sorted.length){ el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px 0">데이터 없음</div>'; return; }
-  el.innerHTML = sorted.map(([ch,cnt])=>{
-    const pct = Math.round(cnt/total*100);
-    const color = CH_COLOR[ch]||'#888';
-    return `<div class="ch-bar-item">
-      <div class="ch-bar-row">
-        <span class="ch-bar-name" style="color:${color}">${ch}</span>
-        <span class="ch-bar-pct">${pct}% <span style="color:var(--text3);font-size:10px">(${cnt.toLocaleString()})</span></span>
-      </div>
-      <div class="ch-track"><div class="ch-fill" style="width:${pct}%;background:${color}"></div></div>
-    </div>`;
-  }).join('');
-}
+
 
 // ── KPI ────────────────────────────────────────────
 function renderKPIs(items){
@@ -750,9 +839,7 @@ function renderAll(items){
   renderSentChart(items);
   renderSentDonut(items);
   renderKeywords(items);
-  const { all, sep } = aggregateChannels(items);
-  renderChannelBars(all, 'chBarsAll');
-  renderChannelBars(sep, 'chBarsSep');
+  renderSOVChart(items);
   renderFeed([...items].sort((a,b)=>(b.작성일||'').localeCompare(a.작성일||'')));
   console.log(`✅ 렌더 완료: ${items.length}건`);
 }
@@ -794,8 +881,8 @@ async function loadFromSheets(){
     })
     // 헤더 행 제외 및 날짜 필터링
     .filter(i => i.작성일 !== '작성일' && i.작성일 >= DATA_FROM && i.작성일 <= DATA_TO);
-    console.log(`📊 로드 완료: 총 ${allItems.length}건 (${DATA_FROM} ~ ${DATA_TO})`);
-    renderAll(allItems);
+    console.log(`📊 로드 완료: 총 ${allItems.length}건 (${DATA_FROM} ~ ${DATA_TO}), 야구 포함`);
+    renderAll(getFilteredItems());
   } catch(e){
     console.error('Sheets 로드 오류:', e);
     document.getElementById('feedBody').innerHTML =
