@@ -214,14 +214,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <!-- KPI -->
   <div class="kpi-row">
     <div class="kpi">
-      <div class="kpi-label">한화 총 버즈</div>
+      <div class="kpi-label">한화불꽃 총 버즈</div>
       <div class="kpi-value" id="kpiTotal">—</div>
-      <div class="kpi-delta" id="kpiTotalSub" style="font-size:10px;color:var(--text3);margin-top:4px"></div>
     </div>
     <div class="kpi">
       <div class="kpi-label">9월 피크 버즈</div>
       <div class="kpi-value" id="kpiPeak">—</div>
-      <div class="kpi-delta" id="kpiPeakSub" style="font-size:10px;color:var(--text3);margin-top:4px"></div>
     </div>
     <div class="kpi">
       <div class="kpi-label">긍정 감성 비율</div>
@@ -237,7 +235,10 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <div class="buzz-section">
     <div class="section-label">📈 월별 버즈량 추이 <span class="idx">01</span></div>
     <div class="buzz-card">
-      <div class="buzz-legend" id="buzzLegend"></div>
+      <div class="buzz-legend">
+        <div class="buzz-leg"><div class="buzz-swatch" style="background:#ff6b2b"></div>한화불꽃 버즈량</div>
+        <div class="buzz-leg"><div class="buzz-swatch" style="background:rgba(255,107,43,0.2);border:1px solid rgba(255,107,43,0.4)"></div>축제 시즌 (9월)</div>
+      </div>
       <div class="buzz-wrap">
         <canvas id="buzzChart" role="img" aria-label="2024·2025 월별 버즈량 비교 바차트. 9월 축제 시즌에 최고치"></canvas>
       </div>
@@ -296,35 +297,16 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <!-- 05 이슈 피드 -->
   <div class="feed-section">
     <div class="section-label">📋 전체 이슈 피드 <span class="idx">05</span></div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
-      <div class="feed-filter" id="feedBrandFilter">
-        <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;padding:5px 4px;white-space:nowrap;align-self:center">카테고리</span>
-        <button class="filter-btn active" onclick="filterFeed('all',this,'brand')">전체</button>
-        <button class="filter-btn" onclick="filterFeed('한화불꽃',this,'brand')">한화불꽃</button>
-        <button class="filter-btn" onclick="filterFeed('한화이글스',this,'brand')">한화이글스</button>
-        <button class="filter-btn" onclick="filterFeed('한화생명',this,'brand')">한화생명</button>
-        <button class="filter-btn" onclick="filterFeed('한화손해보험',this,'brand')">한화손보</button>
-        <button class="filter-btn" onclick="filterFeed('한화에어로',this,'brand')">한화에어로</button>
-        <button class="filter-btn" onclick="filterFeed('한화오션',this,'brand')">한화오션</button>
-        <button class="filter-btn" onclick="filterFeed('한화솔루션',this,'brand')">한화솔루션</button>
-        <button class="filter-btn" onclick="filterFeed('한화건설',this,'brand')">한화건설</button>
-        <button class="filter-btn" onclick="filterFeed('한화갤러리아',this,'brand')">한화갤러리아</button>
-        <button class="filter-btn" onclick="filterFeed('한화호텔',this,'brand')">한화호텔</button>
-        <button class="filter-btn" onclick="filterFeed('한화계열사',this,'brand')">한화계열사</button>
-        <button class="filter-btn" onclick="filterFeed('한화일반',this,'brand')">한화일반</button>
-      </div>
-      <div class="feed-filter" id="feedSubFilter">
-        <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;padding:5px 4px;white-space:nowrap;align-self:center">필터</span>
-        <button class="filter-btn active" onclick="filterFeed('all',this,'sub')">전체</button>
-        <button class="filter-btn" onclick="filterFeed('pos',this,'sub')">긍정</button>
-        <button class="filter-btn" onclick="filterFeed('neg',this,'sub')">부정</button>
-        <button class="filter-btn" onclick="filterFeed('neu',this,'sub')">중립</button>
-        <button class="filter-btn" onclick="filterFeed('news',this,'sub')">뉴스</button>
-        <button class="filter-btn" onclick="filterFeed('blog',this,'sub')">블로그</button>
-        <button class="filter-btn" onclick="filterFeed('cafe',this,'sub')">카페</button>
-        <button class="filter-btn" onclick="filterFeed('web',this,'sub')">웹문서</button>
-        <button class="filter-btn" onclick="filterFeed('sep',this,'sub')">9월만</button>
-      </div>
+    <div class="feed-filter" id="feedSubFilter">
+      <button class="filter-btn active" onclick="filterFeed('all',this,'sub')">전체</button>
+      <button class="filter-btn" onclick="filterFeed('pos',this,'sub')">긍정</button>
+      <button class="filter-btn" onclick="filterFeed('neg',this,'sub')">부정</button>
+      <button class="filter-btn" onclick="filterFeed('neu',this,'sub')">중립</button>
+      <button class="filter-btn" onclick="filterFeed('news',this,'sub')">뉴스</button>
+      <button class="filter-btn" onclick="filterFeed('blog',this,'sub')">블로그</button>
+      <button class="filter-btn" onclick="filterFeed('cafe',this,'sub')">카페</button>
+      <button class="filter-btn" onclick="filterFeed('web',this,'sub')">웹문서</button>
+      <button class="filter-btn" onclick="filterFeed('sep',this,'sub')">9월만</button>
     </div>
     <div style="overflow-x:auto">
       <table class="feed-table" id="feedTable">
@@ -374,22 +356,6 @@ const DATA_FROM = '2025-04-01';
 // ── 채널 색상 ─────────────────────────────────────
 const CH_COLOR = { '뉴스':'#5b9cf6', '블로그':'#ff8c55', '카페':'#b07ef8', '웹문서':'#66c7b4' };
 
-// ── J열 카테고리 컬러 ─────────────────────────────
-const CAT_LIST = ['한화불꽃','한화이글스','한화생명','한화손해보험','한화에어로','한화오션','한화솔루션','한화건설','한화갤러리아','한화호텔','한화계열사','한화일반'];
-const CAT_COLORS = {
-  '한화불꽃':     '#ff6b2b',
-  '한화이글스':   '#ff9944',
-  '한화생명':     '#ffbb66',
-  '한화손해보험': '#ffcc88',
-  '한화에어로':   '#aad4ff',
-  '한화오션':     '#77aadd',
-  '한화솔루션':   '#55aacc',
-  '한화건설':     '#448899',
-  '한화갤러리아': '#bb88ee',
-  '한화호텔':     '#9966cc',
-  '한화계열사':   '#888899',
-  '한화일반':     '#555566',
-};
 
 // 이미지 연관 키워드 (강조 표시용)
 const IMAGE_WORDS = new Set(['화려한','화려','감동','최고','행복','추억','멋진','아름다운',
@@ -418,15 +384,9 @@ let activeRange = null;
 let isLive = true;
 let allItems = [];
 // 필터 적용된 아이템 반환
-// 제외/멀티/기타/야구 항상 제거
+// 한화불꽃 브랜드만 통과 (D열 기준)
 function getFilteredItems(){
-  return allItems.filter(i => {
-    if(i.브랜드 === '제외') return false;
-    if(i.브랜드 === '멀티') return false;
-    if(i.브랜드 === '기타') return false;
-    if(i.브랜드 === '야구') return false;
-    return true;
-  });
+  return allItems.filter(i => i.브랜드 === '한화불꽃');
 }
 
 function toggleLive(){
@@ -525,27 +485,16 @@ function renderBuzzChart(items){
     return yr.slice(2)+'/'+parseInt(mo)+'월';
   });
 
-  // 한화 관련 (D열 기준) 필터
-  const hw = items.filter(i => i.브랜드 === '한화불꽃' || i.브랜드 === '한화');
+  // 월별 버즈 집계
+  const counts = allMonths.map(ym =>
+    items.filter(i => (i.작성일||'').startsWith(ym)).length
+  );
 
-  // J열 카테고리별 월별 집계
-  const catMonthly = {};
-  CAT_LIST.forEach(cat => { catMonthly[cat] = allMonths.map(() => 0); });
-  hw.forEach(item => {
-    const ym  = (item.작성일||'').substring(0,7);
-    const idx = allMonths.indexOf(ym);
-    if(idx < 0) return;
-    const cat = item.카테고리 || '한화일반';
-    if(catMonthly[cat]) catMonthly[cat][idx]++;
-    else catMonthly['한화일반'][idx]++;
-  });
+  // 9월 강조색
+  const bgColors = allMonths.map(ym => ym.endsWith('-09') ? '#ff6b2b' : 'rgba(255,107,43,0.55)');
 
-  // 실제 데이터 있는 카테고리만 추림
-  const activeCats = CAT_LIST.filter(cat => catMonthly[cat].some(v => v > 0));
-
-  // 9월 인덱스 찾기 (동적 월 라벨 기반)
-  const sepIndices = allMonths.reduce((acc,ym,i)=>{ if(ym.endsWith('-09')) acc.push(i); return acc; },[]);
-
+  // 9월 강조 플러그인
+  const sepIndices = allMonths.reduce((acc,ym,i) => { if(ym.endsWith('-09')) acc.push(i); return acc; },[]);
   const festPlugin = {
     id:'festZone',
     beforeDraw(chart){
@@ -566,25 +515,19 @@ function renderBuzzChart(items){
     }
   };
 
-  // 범례 동적 생성
-  document.getElementById('buzzLegend').innerHTML =
-    activeCats.map(cat => `<div class="buzz-leg"><div class="buzz-swatch" style="background:${CAT_COLORS[cat]}"></div>${cat}</div>`).join('') +
-    `<div class="buzz-leg"><div class="buzz-swatch" style="background:rgba(255,107,43,0.2);border:1px solid rgba(255,107,43,0.4)"></div>축제 시즌</div>`;
-
   if(buzzChartInst) buzzChartInst.destroy();
   buzzChartInst = new Chart(document.getElementById('buzzChart'),{
     type:'bar',
     plugins:[festPlugin],
     data:{
       labels,
-      datasets: activeCats.map(cat => ({
-        label: cat,
-        data: catMonthly[cat],
-        backgroundColor: CAT_COLORS[cat],
-        borderRadius: cat==='한화불꽃' ? 2 : 0,
-        borderSkipped: false,
-        stack: 's'
-      }))
+      datasets:[{
+        label:'한화불꽃',
+        data: counts,
+        backgroundColor: bgColors,
+        borderRadius: 3,
+        borderSkipped: false
+      }]
     },
     options:{
       responsive:true, maintainAspectRatio:false,
@@ -592,19 +535,12 @@ function renderBuzzChart(items){
         legend:{display:false},
         tooltip:{
           backgroundColor:'#1a1a2e',titleColor:'#ccc',bodyColor:'#aaa',borderColor:'#2a2a3e',borderWidth:1,
-          callbacks:{
-            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()}건`,
-            afterBody: (ctxArr) => {
-              const idx = ctxArr[0].dataIndex;
-              const tot = activeCats.reduce((s,c)=>s+(catMonthly[c][idx]||0),0);
-              return [`  ─────────────`, `  합계: ${tot.toLocaleString()}건`];
-            }
-          }
+          callbacks:{ label: ctx => ` ${ctx.parsed.y.toLocaleString()}건` }
         }
       },
       scales:{
-        x:{ stacked:true, grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#666',font:{size:11},maxRotation:45,autoSkip:false} },
-        y:{ stacked:true, grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#666',font:{size:11}, callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v} }
+        x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#666',font:{size:11},maxRotation:45,autoSkip:false}, barPercentage:0.75 },
+        y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#666',font:{size:11}, callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v} }
       }
     }
   });
@@ -613,9 +549,7 @@ function renderBuzzChart(items){
 // ── 02 감성 스택 차트 ──────────────────────────────
 let sentChartInst = null;
 function renderSentChart(items){
-  // 감성 차트 — 한화+한화불꽃 합산
-  const hw = items.filter(i => i.브랜드 === '한화불꽃' || i.브랜드 === '한화');
-  const { buzz, sent } = aggregateByMonth(hw);
+  const { buzz, sent } = aggregateByMonth(items);
   const sortedKeys = Object.keys(sent).sort();
   const recent = sortedKeys.slice(-18);
   const labels = recent.map(k => {
@@ -653,16 +587,13 @@ function renderSentChart(items){
 
 // ── 02 감성 도넛 ───────────────────────────────────
 function renderSentDonut(items){
-  // 도넛 — 한화+한화불꽃 합산
-  const hw = items.filter(i => i.브랜드 === '한화불꽃' || i.브랜드 === '한화');
   let pos=0,neu=0,neg=0;
-  hw.forEach(i=>{
+  items.forEach(i=>{
     if(i.감성==='긍정') pos++;
     else if(i.감성==='부정') neg++;
     else neu++;
   });
   const total = pos+neu+neg||1;
-  // total은 hw 기준
 
   // SVG 도넛
   const r=38,C=2*Math.PI*r;
@@ -696,11 +627,9 @@ function renderSentDonut(items){
 
 // ── 03 키워드 렌더 ─────────────────────────────────
 function renderKeywords(items){
-  // 키워드 — 한화+한화불꽃 합산
-  const hw = items.filter(i => i.브랜드 === '한화불꽃' || i.브랜드 === '한화');
-  const before = extractKeywords(hw, 7, 8);
-  const during = extractKeywords(hw, 9, 9);
-  const after  = extractKeywords(hw, 10, 11);
+  const before = extractKeywords(items, 7, 8);
+  const during = extractKeywords(items, 9, 9);
+  const after  = extractKeywords(items, 10, 11);
 
   function kwHtml(data, color){
     if(!data.length) return '<div style="font-size:12px;color:var(--text3);padding:8px 0">데이터 없음</div>';
@@ -724,36 +653,27 @@ function renderKeywords(items){
 // ── 04 채널 바 ─────────────────────────────────────
 
 
-// ── KPI — 한화+한화불꽃 합산 기준 ───────────────────
+// ── KPI — 한화불꽃 기준 ─────────────────────────────
 function renderKPIs(items){
-  const hw  = items.filter(i => i.브랜드 === '한화불꽃' || i.브랜드 === '한화');
-  const hwf = items.filter(i => i.브랜드 === '한화불꽃');
-  const total    = hw.length;
-  const fwTotal  = hwf.length;
-  const sep      = hw.filter(i => (i.작성일||'').substring(5,7) === '09').length;
-  const sepFw    = hwf.filter(i => (i.작성일||'').substring(5,7) === '09').length;
-  const pos      = hw.filter(i => i.감성 === '긍정').length;
-  const neg      = hw.filter(i => i.감성 === '부정').length;
-  const posPct   = total > 0 ? Math.round(pos / total * 100) : 0;
-  const negPct   = total > 0 ? Math.round(neg / total * 100) : 0;
-  const fwPct    = total > 0 ? Math.round(fwTotal / total * 100) : 0;
+  const total  = items.length;
+  const sep    = items.filter(i => (i.작성일||'').substring(5,7) === '09').length;
+  const pos    = items.filter(i => i.감성 === '긍정').length;
+  const neg    = items.filter(i => i.감성 === '부정').length;
+  const posPct = total > 0 ? Math.round(pos / total * 100) : 0;
+  const negPct = total > 0 ? Math.round(neg / total * 100) : 0;
 
   document.getElementById('kpiTotal').textContent = total.toLocaleString();
-  document.getElementById('kpiTotalSub').textContent = `불꽃 직접 ${fwTotal.toLocaleString()}건 (${fwPct}%)`;
   document.getElementById('kpiPeak').textContent  = sep.toLocaleString();
-  document.getElementById('kpiPeakSub').textContent = `불꽃 직접 ${sepFw.toLocaleString()}건`;
   document.getElementById('kpiPos').textContent   = posPct + '%';
   document.getElementById('kpiNeg').textContent   = negPct + '%';
 }
 
-// ── 05 피드 ────────────────────────────────────────
-// ── 피드 — 페이지네이션 + 2단 필터 ──────────────────
-let allFeedItems  = [];   // 전체 원본
-let filteredFeed  = [];   // 필터 적용 후
+// ── 05 피드 — 페이지네이션 ──────────────────────────
+let allFeedItems  = [];
+let filteredFeed  = [];
 let feedPage      = 0;
 const FEED_PER_PAGE = 10;
-let activeBrandFilter = 'all';
-let activeSubFilter   = 'all';
+let activeSubFilter = 'all';
 
 function renderFeed(items){
   allFeedItems = [...items].sort((a,b)=>(b.작성일||'').localeCompare(a.작성일||''));
@@ -763,25 +683,18 @@ function renderFeed(items){
 
 function applyFeedFilter(){
   filteredFeed = allFeedItems.filter(item => {
-    const ch    = normalizeChannel(item.채널);
-    const sep   = (item.작성일||'').substring(5,7) === '09';
-    const brand = item.브랜드||'';
-    const sent  = item.감성||'';
-
-    // 카테고리 필터 (J열 기준)
-    const cat = item.카테고리||'';
-    if(activeBrandFilter !== 'all' && cat !== activeBrandFilter) return false;
-
-    // 서브 필터
-    const sf = activeSubFilter;
-    if(sf==='pos'  && sent !== '긍정')    return false;
-    if(sf==='neg'  && sent !== '부정')    return false;
-    if(sf==='neu'  && sent !== '중립')    return false;
-    if(sf==='news' && ch   !== '뉴스')    return false;
-    if(sf==='blog' && ch   !== '블로그')  return false;
-    if(sf==='cafe' && ch   !== '카페')    return false;
-    if(sf==='web'  && ch   !== '웹문서')  return false;
-    if(sf==='sep'  && !sep)               return false;
+    const ch   = normalizeChannel(item.채널);
+    const sep  = (item.작성일||'').substring(5,7) === '09';
+    const sent = item.감성||'';
+    const sf   = activeSubFilter;
+    if(sf==='pos'  && sent !== '긍정')   return false;
+    if(sf==='neg'  && sent !== '부정')   return false;
+    if(sf==='neu'  && sent !== '중립')   return false;
+    if(sf==='news' && ch   !== '뉴스')   return false;
+    if(sf==='blog' && ch   !== '블로그') return false;
+    if(sf==='cafe' && ch   !== '카페')   return false;
+    if(sf==='web'  && ch   !== '웹문서') return false;
+    if(sf==='sep'  && !sep)              return false;
     return true;
   });
   feedPage = 0;
@@ -835,13 +748,8 @@ function changePage(dir){
 }
 
 function filterFeed(f, btn, group){
-  if(group === 'brand'){
-    activeBrandFilter = f;
-    document.querySelectorAll('#feedBrandFilter .filter-btn').forEach(b=>b.classList.remove('active'));
-  } else {
-    activeSubFilter = f;
-    document.querySelectorAll('#feedSubFilter .filter-btn').forEach(b=>b.classList.remove('active'));
-  }
+  activeSubFilter = f;
+  document.querySelectorAll('#feedSubFilter .filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   applyFeedFilter();
 }
