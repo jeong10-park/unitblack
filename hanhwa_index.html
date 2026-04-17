@@ -91,6 +91,14 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 
 /* ── 03 키워드 ── */
 .kw-section{margin-bottom:44px}
+/* ── 04 감성 키워드 버블 ── */
+.sentcloud-section{margin-bottom:44px}
+.sentcloud-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.sentcloud-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;min-height:180px}
+.sentcloud-title{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.sentcloud-body{display:flex;flex-wrap:wrap;gap:7px;align-items:center;line-height:1.4}
+.sc-tag{border-radius:20px;padding:3px 10px;cursor:default;transition:opacity .15s;white-space:nowrap;font-family:'Noto Sans KR',sans-serif;font-weight:400}
+.sc-tag:hover{opacity:0.75}
 .kw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .kw-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px}
 .kw-card-title{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
@@ -142,12 +150,13 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .footer{border-top:1px solid var(--border);padding:20px 32px;display:flex;justify-content:space-between;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;flex-wrap:wrap;gap:8px}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.kpi-row,.buzz-section,.sent-section,.kw-section,.feed-section{animation:fadeUp .45s ease both}
+.kpi-row,.buzz-section,.sent-section,.kw-section,.sentcloud-section,.feed-section{animation:fadeUp .45s ease both}
 .kpi-row{animation-delay:.05s}.buzz-section{animation-delay:.1s}.sent-section{animation-delay:.15s}
-.kw-section{animation-delay:.2s}.feed-section{animation-delay:.25s}
+.kw-section{animation-delay:.2s}.sentcloud-section{animation-delay:.23s}.feed-section{animation-delay:.25s}
 
 @media(max-width:1100px){.sent-row{grid-template-columns:1fr}.sov-section .sov-grid-2{grid-template-columns:1fr}}
 @media(max-width:900px){
+  .sentcloud-grid{grid-template-columns:1fr}
   .kpi-row{grid-template-columns:1fr 1fr}
   .kw-grid{grid-template-columns:1fr}
   .container{padding:0 16px 60px}
@@ -293,6 +302,25 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     </div>
   </div>
 
+
+  <!-- 04 감성 핵심 키워드 -->
+  <div class="sentcloud-section">
+    <div class="section-label">💬 감성 핵심 키워드 — 시기별 비교 <span class="idx">04</span></div>
+    <div class="sentcloud-grid">
+      <div class="sentcloud-card">
+        <div class="sentcloud-title"><span class="kw-dot" style="background:#ff9966"></span>축제 전 (7–8월)</div>
+        <div class="sentcloud-body" id="scBefore"></div>
+      </div>
+      <div class="sentcloud-card">
+        <div class="sentcloud-title"><span class="kw-dot" style="background:var(--accent)"></span>축제 당월 (9월)</div>
+        <div class="sentcloud-body" id="scDuring"></div>
+      </div>
+      <div class="sentcloud-card">
+        <div class="sentcloud-title"><span class="kw-dot" style="background:#7aabf8"></span>축제 후 (10–11월)</div>
+        <div class="sentcloud-body" id="scAfter"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- 05 이슈 피드 -->
   <div class="feed-section">
@@ -650,6 +678,71 @@ function renderKeywords(items){
   document.getElementById('kwAfter').innerHTML  = kwHtml(after,  '#7aabf8');
 }
 
+// ── 04 감성 키워드 버블 ───────────────────────────────
+function extractSentKeywords(items, moFrom, moTo, topN=25){
+  // 감성별로 키워드 빈도 집계
+  const freq = { pos:{}, neg:{}, neu:{} };
+  items.forEach(item => {
+    const mo = parseInt((item.작성일||'').substring(5,7));
+    if(!mo||mo<moFrom||mo>moTo) return;
+    const sent = item.감성==='긍정'?'pos':item.감성==='부정'?'neg':'neu';
+    const text = (item.제목+' '+item.내용요약)
+      .replace(/https?:\/\/\S+/gi,' ')
+      .replace(/[^\w가-힣\s]/g,' ');
+    text.split(/\s+/).forEach(w => {
+      w = w.replace(/(이|가|을|를|은|는|의|에|에서|으로|로|와|과|도|만)$/, '').trim();
+      if(w.length<2||STOP.has(w)||/^\d/.test(w)) return;
+      freq[sent][w] = (freq[sent][w]||0) + 1;
+    });
+  });
+  // 각 감성별 상위 키워드 추출 후 합치기
+  const result = [];
+  const seen = new Set();
+  [
+    { key:'pos', topN: Math.round(topN*0.5) },
+    { key:'neg', topN: Math.round(topN*0.25) },
+    { key:'neu', topN: Math.round(topN*0.25) },
+  ].forEach(({key, topN:n}) => {
+    Object.entries(freq[key])
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0,n)
+      .forEach(([w,cnt]) => {
+        if(!seen.has(w)){ seen.add(w); result.push({w, cnt, sent:key}); }
+      });
+  });
+  // 전체 빈도 기준으로 섞어서 정렬
+  return result.sort((a,b)=>b.cnt-a.cnt);
+}
+
+function renderSentCloud(items, moFrom, moTo, elId){
+  const el = document.getElementById(elId);
+  const data = extractSentKeywords(items, moFrom, moTo, 30);
+  if(!data.length){
+    el.innerHTML = '<span style="font-size:12px;color:var(--text3)">데이터 없음</span>';
+    return;
+  }
+  const maxCnt = data[0].cnt || 1;
+  const minCnt = data[data.length-1].cnt || 1;
+  const COLORS = {
+    pos: { bg:'rgba(34,211,122,0.12)', border:'rgba(34,211,122,0.35)', text:'#4ec87a' },
+    neg: { bg:'rgba(255,82,82,0.12)',  border:'rgba(255,82,82,0.35)',  text:'#ff6b6b' },
+    neu: { bg:'rgba(160,160,188,0.1)', border:'rgba(160,160,188,0.25)',text:'#a0a0bc' },
+  };
+  // 폰트 크기: 최소 11px ~ 최대 22px
+  el.innerHTML = data.map(({w, cnt, sent}) => {
+    const ratio = maxCnt===minCnt ? 0.5 : (cnt-minCnt)/(maxCnt-minCnt);
+    const size  = Math.round(11 + ratio * 11);
+    const c = COLORS[sent];
+    return `<span class="sc-tag" style="font-size:${size}px;background:${c.bg};border:1px solid ${c.border};color:${c.text}" title="${w}: ${cnt}건">${w}</span>`;
+  }).join('');
+}
+
+function renderSentClouds(items){
+  renderSentCloud(items, 7, 8,  'scBefore');
+  renderSentCloud(items, 9, 9,  'scDuring');
+  renderSentCloud(items, 10, 11,'scAfter');
+}
+
 // ── 04 채널 바 ─────────────────────────────────────
 
 
@@ -761,6 +854,7 @@ function renderAll(items){
   renderSentChart(items);
   renderSentDonut(items);
   renderKeywords(items);
+  renderSentClouds(items);
   renderFeed(items);
   console.log(`✅ 렌더 완료: ${items.length}건`);
 }
