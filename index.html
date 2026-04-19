@@ -734,7 +734,7 @@ async function loadFeedFromSheets(){
         원문URL:  c[7]?.v||'',
         댓글수:   c[8]?.v||'',
       };
-    }).filter(i=>i.제목);
+    }).filter(i=>i.제목 && i.브랜드 !== '제외');
 
     allItems=items; // searchKw()에서 사용
     console.log(`✅ Sheets에서 ${items.length}개 로드 완료`);
