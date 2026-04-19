@@ -537,7 +537,7 @@ function renderSentDonut(svgId,legId,sentKey){
   const filtered=mkDonut(svgId,'40','40',28,SENT[sentKey]);
   const total=Object.values(filtered).reduce((a,b)=>a+b,0)||1;
   const leg=document.getElementById(legId);leg.innerHTML='';
-  Object.entries(filtered).sort((a,b)=>b[1]-a[1]).slice(0,4).forEach(([brand,raw])=>{
+  Object.entries(filtered).sort((a,b)=>b[1]-a[1]).forEach(([brand,raw])=>{
     const pct=Math.round(raw/total*100);const isSave=brand==='세이브택스';
     const color=BC[brand]||'#888';
     leg.innerHTML+=`<div class="sent-legend-item">
